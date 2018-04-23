@@ -14,6 +14,7 @@ AC_CONFIG_HEADERS([src/config/bitcoincore-indexd-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
 
+BITCOINCOREINDEXD_DAEMON_NAME=bitcoincore-indexd
 APPLICATION_GUI_NAME=application
 
 dnl Unless the user specified ARFLAGS, force it to be cr
@@ -911,7 +912,7 @@ if test x$need_bundled_univalue = xyes; then
 fi
 
 ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni"
-AC_CONFIG_SUBDIRS([src/secp256k1])
+AC_CONFIG_SUBDIRS([src/libbtc])
 
 AC_OUTPUT
 

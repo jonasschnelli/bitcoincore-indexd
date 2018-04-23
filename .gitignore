@@ -1,7 +1,7 @@
 *.tar.gz
 
 *.exe
-src/application
+src/bitcoincore-indexd
 
 # autoreconf
 Makefile.in
