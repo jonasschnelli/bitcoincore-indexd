@@ -61,6 +61,7 @@ void read_cb(struct bufferevent* bev, void* ctx)
 
     btc_node* node = (btc_node*)ctx;
 
+    node->recv_cnt += length;
     if ((node->state & NODE_CONNECTED) != NODE_CONNECTED) {
         // ignore messages from disconnected peers
         return;
@@ -212,6 +213,7 @@ btc_node* btc_node_new()
     node->lastping = 0;
     node->time_started_con = 0;
     node->time_last_request = 0;
+    node->recv_cnt = 0;
     btc_hash_clear(node->last_requested_inv);
 
     node->recvBuffer = cstr_new_sz(BTC_P2P_MESSAGE_CHUNK_SIZE);
@@ -450,7 +452,7 @@ void btc_node_send_version(btc_node* node)
     memset(&version_msg, 0, sizeof(version_msg));
 
     /* create a serialized version message */
-    btc_p2p_msg_version_init(&version_msg, &fromAddr, &toAddr, node->nodegroup->clientstr, true);
+    btc_p2p_msg_version_init(&version_msg, &fromAddr, &toAddr, node->nodegroup->clientstr, false);
     btc_p2p_msg_version_ser(&version_msg, version_msg_cstr);
 
     /* create p2p message */
@@ -480,6 +482,7 @@ int btc_node_parse_message(btc_node* node, btc_p2p_msg_hdr* hdr, struct const_bu
                 return btc_node_missbehave(node);
             }
             if ((v_msg_check.services & BTC_NODE_NETWORK) != BTC_NODE_NETWORK) {
+              node->nodegroup->log_write_cb("NODE_NETWORK not found (%d: %s %d)\n", node->nodeid, v_msg_check.useragent, v_msg_check.start_height);
                 btc_node_disconnect(node);
             }
             node->bestknownheight = v_msg_check.start_height;

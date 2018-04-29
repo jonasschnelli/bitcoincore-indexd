@@ -24,10 +24,26 @@ $(LIBBTC): $(wildcard libbtc/src/*) $(wildcard univalue/include/*)
 
 bin_PROGRAMS = bitcoincore-indexd
 
+BITCOINCORE_INDEXD_H = \
+    btcnode.h \
+    utils.h \
+    dbinterface.h \
+    databaselmdb.h
+
+DATABASE_LMDB_SOURCES = \
+    databaselmdb.cpp
+    
+BITCOINCORE_INDEXD_SOURCES = \
+    btcnode.cpp \
+    main.cpp \
+    utils.cpp \
+    $(DATABASE_LMDB_SOURCES) \
+    $(BITCOINCORE_INDEXD_H)
+
 # application binary #
-bitcoincore_indexd_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir) $(UNIVALUE_CFLAGS) $(LIBUNIVALUE_CFLAGS)
+bitcoincore_indexd_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir) $(UNIVALUE_CFLAGS) $(LIBUNIVALUE_CFLAGS) $(LIBBTC_CFLAGS)
 bitcoincore_indexd_CXXFLAGS = $(AM_CXXFLAGS)
-bitcoincore_indexd_SOURCES = main.cpp
-bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC)
+bitcoincore_indexd_SOURCES = $(BITCOINCORE_INDEXD_SOURCES)
+bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC) $(LMDB_LIBS)
 bitcoincore_indexd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 bitcoincore_indexd_LIBTOOLFLAGS = --tag CXX

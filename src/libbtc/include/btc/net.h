@@ -92,6 +92,7 @@ typedef struct btc_node_ {
     uint64_t lastping;
     uint64_t time_started_con;
     uint64_t time_last_request;
+    uint64_t recv_cnt;
     uint256 last_requested_inv;
 
     cstring* recvBuffer;
