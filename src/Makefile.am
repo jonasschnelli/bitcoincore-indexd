@@ -28,22 +28,36 @@ BITCOINCORE_INDEXD_H = \
     btcnode.h \
     utils.h \
     dbinterface.h \
-    databaselmdb.h
+    databaselmdb.h \
+    dbwrapper.h
 
 DATABASE_LMDB_SOURCES = \
     databaselmdb.cpp
+
+DATABASE_LEVELDB_SOURCES = \
+    dbwrapper.cpp
     
 BITCOINCORE_INDEXD_SOURCES = \
     btcnode.cpp \
     main.cpp \
     utils.cpp \
+    $(BITCOINCORE_INDEXD_H) \
     $(DATABASE_LMDB_SOURCES) \
-    $(BITCOINCORE_INDEXD_H)
+    $(DATABASE_LEVELDB_SOURCES)
 
 # application binary #
-bitcoincore_indexd_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir) $(UNIVALUE_CFLAGS) $(LIBUNIVALUE_CFLAGS) $(LIBBTC_CFLAGS)
+bitcoincore_indexd_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir) $(UNIVALUE_CFLAGS) $(LIBUNIVALUE_CFLAGS) $(LIBBTC_CFLAGS) $(LEVELDB_CPPFLAGS)
 bitcoincore_indexd_CXXFLAGS = $(AM_CXXFLAGS)
 bitcoincore_indexd_SOURCES = $(BITCOINCORE_INDEXD_SOURCES)
-bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC) $(LMDB_LIBS)
+bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC) $(LMDB_LIBS) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV)
 bitcoincore_indexd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 bitcoincore_indexd_LIBTOOLFLAGS = --tag CXX
+
+
+clean-local:
+	-$(MAKE) -C univalue clean
+	-$(MAKE) -C libbtc clean
+	-rm -f leveldb/*/*.gcda leveldb/*/*.gcno leveldb/helpers/memenv/*.gcda leveldb/helpers/memenv/*.gcno
+	-rm -f config.h
+
+include Makefile.leveldb.include

@@ -564,6 +564,25 @@ if test x$use_hardening != xno; then
   esac
 fi
 
+AC_CHECK_HEADERS([endian.h sys/endian.h byteswap.h stdio.h stdlib.h unistd.h strings.h sys/types.h sys/stat.h sys/select.h sys/prctl.h])
+
+AC_CHECK_DECLS([strnlen])
+
+# Check for daemon(3), unrelated to --with-daemon (although used by it)
+AC_CHECK_DECLS([daemon])
+
+AC_CHECK_DECLS([le16toh, le32toh, le64toh, htole16, htole32, htole64, be16toh, be32toh, be64toh, htobe16, htobe32, htobe64],,,
+		[#if HAVE_ENDIAN_H
+                 #include <endian.h>
+                 #elif HAVE_SYS_ENDIAN_H
+                 #include <sys/endian.h>
+                 #endif])
+
+AC_CHECK_DECLS([bswap_16, bswap_32, bswap_64],,,
+		[#if HAVE_BYTESWAP_H
+                 #include <byteswap.h>
+                 #endif])
+
 dnl this flag screws up non-darwin gcc even when the check fails. special-case it.
 if test x$TARGET_OS = xdarwin; then
   AX_CHECK_LINK_FLAG([[-Wl,-dead_strip]], [LDFLAGS="$LDFLAGS -Wl,-dead_strip"])
@@ -844,6 +863,39 @@ else
   AC_MSG_RESULT([no])
 fi
 
+# Check for optional instruction set support. Enabling these does _not_ imply that all code will
+# be compiled with them, rather that specific objects/libs may use them after checking for runtime
+# compatibility.
+AX_CHECK_COMPILE_FLAG([-msse4.2],[[SSE42_CXXFLAGS="-msse4.2"]],,[[$CXXFLAG_WERROR]])
+
+TEMP_CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $SSE42_CXXFLAGS"
+AC_MSG_CHECKING(for assembler crc32 support)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+    #include <stdint.h>
+    #if defined(_MSC_VER)
+    #include <intrin.h>
+    #elif defined(__GNUC__) && defined(__SSE4_2__)
+    #include <nmmintrin.h>
+    #endif
+  ]],[[
+    uint64_t l = 0;
+    l = _mm_crc32_u8(l, 0);
+    l = _mm_crc32_u32(l, 0);
+    l = _mm_crc32_u64(l, 0);
+    return l;
+  ]])],
+ [ AC_MSG_RESULT(yes); enable_hwcrc32=yes],
+ [ AC_MSG_RESULT(no)]
+)
+
+LEVELDB_CPPFLAGS=
+LIBLEVELDB=
+LIBMEMENV=
+AC_SUBST(LEVELDB_CPPFLAGS)
+AC_SUBST(LIBLEVELDB)
+AC_SUBST(LIBMEMENV)
+
 AM_CONDITIONAL([TARGET_DARWIN], [test x$TARGET_OS = xdarwin])
 AM_CONDITIONAL([BUILD_DARWIN], [test x$BUILD_OS = xdarwin])
 AM_CONDITIONAL([TARGET_WINDOWS], [test x$TARGET_OS = xwindows])
@@ -879,6 +931,7 @@ AC_SUBST(COPYRIGHT_HOLDERS, "_COPYRIGHT_HOLDERS")
 AC_SUBST(COPYRIGHT_HOLDERS_SUBSTITUTION, "_COPYRIGHT_HOLDERS_SUBSTITUTION")
 AC_SUBST(COPYRIGHT_HOLDERS_FINAL, "_COPYRIGHT_HOLDERS_FINAL")
 AC_SUBST(APPLICATION_GUI_NAME)
+AC_SUBST(LEVELDB_TARGET_FLAGS)
 
 AC_SUBST(RELDFLAGS)
 AC_SUBST(ERROR_CXXFLAGS)

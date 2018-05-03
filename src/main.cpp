@@ -5,6 +5,7 @@
 #include <lmdb.h>
 
 #include <databaselmdb.h>
+#include <dbwrapper.h>
 #include <btcnode.h>
 
 
@@ -225,9 +226,10 @@ int main(int argc, char* argv[])
 
 
     DatabaseLMDB db;
-    db.open("");
-    BTCNode node(&db);
+    DatabaseLEVELDB db2;
+    db2.open("");
+    BTCNode node(&db2);
     node.SyncHeaders();
     node.SyncBlocks();
-    db.close();
+    db2.close();
 }
