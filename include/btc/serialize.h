@@ -33,7 +33,7 @@
 #include "cstr.h"
 #include "portable_endian.h"
 
-LIBBTC_END_DECL
+LIBBTC_BEGIN_DECL
 
 LIBBTC_API void ser_bytes(cstring* s, const void* p, size_t len);
 LIBBTC_API void ser_u16(cstring* s, uint16_t v_);
