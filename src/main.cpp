@@ -12,12 +12,24 @@
 #include <db_leveldb.h>
 #include <btcnode.h>
 
+static std::string DEFAULT_DB = "leveldb";
 int main(int argc, char* argv[])
 {
-    DatabaseLEVELDB db;
-    db.open("");
-    BTCNode node(&db);
+    g_args.ParseParameters(argc, argv);
+
+    IndexDatabaseInterface *db = nullptr;
+    if (g_args.GetArg("-database", DEFAULT_DB) == "leveldb") {
+        db = new DatabaseLEVELDB(GetDataDir()+"/db_leveldb");
+    }
+    else if (g_args.GetArg("-database", DEFAULT_DB) == "lmdb") {
+        db = new DatabaseLMDB(GetDataDir()+"/db_lmdb");
+    }
+    else {
+        LogPrintf("Database not supported");
+        exit(1);
+    }
+    BTCNode node(db);
     node.SyncHeaders();
     node.SyncBlocks();
-    db.close();
+    db->close();
 }

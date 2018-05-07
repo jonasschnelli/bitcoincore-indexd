@@ -16,7 +16,6 @@ class IndexDatabaseInterface
 public:
     virtual ~IndexDatabaseInterface() {}
 
-    virtual bool open(const std::string& path) = 0;
     virtual bool beginTXN() = 0;
     virtual bool commitTXN() = 0;
     virtual bool close() = 0;

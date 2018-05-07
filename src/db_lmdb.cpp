@@ -6,12 +6,7 @@
 
 #include <utils.h>
 
-DatabaseLMDB::DatabaseLMDB()
-{
-
-}
-
-bool DatabaseLMDB::open(const std::string& path) {
+DatabaseLMDB::DatabaseLMDB(const std::string& path) {
     int rc = 0;
     rc = mdb_env_create(&m_env);
     rc = mdb_env_set_mapsize(m_env, 21474836480); //20GB
@@ -19,7 +14,6 @@ bool DatabaseLMDB::open(const std::string& path) {
     rc = mdb_txn_begin(m_env, NULL, 0, &m_txn);
     rc = mdb_open(m_txn, NULL, 0, &m_dbi);
     mdb_txn_abort(m_txn);
-    return true;
 }
 
 bool DatabaseLMDB::beginTXN() {

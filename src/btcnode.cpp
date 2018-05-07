@@ -6,6 +6,7 @@
 #include <btc/tx.h>
 #include <btc/utils.h>
 
+#include <utils.h>
 
 class BTCNodePriv
 {
@@ -223,7 +224,9 @@ BTCNodePriv::BTCNodePriv(BTCNode *node_in) : m_node(node_in) {
     m_group = btc_node_group_new(NULL);
     m_group->desired_amount_connected_nodes = 1;
 
-    m_group->log_write_cb = log_print;
+    if (g_args.GetBoolArg("-netdebug", false)) {
+        m_group->log_write_cb = net_write_log_printf;
+    }
     m_group->parse_cmd_cb = parse_cmd;
     m_group->postcmd_cb = postcmd;
     m_group->node_connection_state_changed_cb = node_connection_state_changed;
@@ -255,7 +258,7 @@ void BTCNode::SyncBlocks() {
 
 bool BTCNode::AddHeader(uint8_t* t, uint8_t* prevhash) {
     if (m_headers.size() > 0 && m_headers.back()->m_hash != prevhash) {
-        log_print("Failed to connect header");
+        LogPrintf("Failed to connect header");
         return false;
     }
     HeaderEntry *hEntry = new HeaderEntry(t, m_headers.size());

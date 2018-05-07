@@ -45,7 +45,7 @@ static void SetMaxOpenFiles(leveldb::Options *options) {
         options->max_open_files = 64;
     }
 #endif
-    log_print("LevelDB using max_open_files=%d (default=%d)\n",
+    LogPrintf("LevelDB using max_open_files=%d (default=%d)\n",
              options->max_open_files, default_open_files);
 }
 
@@ -81,21 +81,21 @@ CDBWrapper::CDBWrapper(const std::string& path, size_t nCacheSize, bool fMemory,
         options.env = penv;
     } else {
         if (fWipe) {
-            log_print("Wiping LevelDB in %s\n", path.c_str());
+            LogPrintf("Wiping LevelDB in %s\n", path.c_str());
             leveldb::Status result = leveldb::DestroyDB(path, options);
             dbwrapper_private::HandleError(result);
         }
         //TryCreateDirectories(path);
-        log_print("Opening LevelDB in %s\n", path.c_str());
+        LogPrintf("Opening LevelDB in %s\n", path.c_str());
     }
     leveldb::Status status = leveldb::DB::Open(options, path, &pdb);
     dbwrapper_private::HandleError(status);
-    log_print("Opened LevelDB successfully\n");
+    LogPrintf("Opened LevelDB successfully\n");
 
     /*if (gArgs.GetBoolArg("-forcecompactdb", false)) {
-        log_print("Starting database compaction of %s\n", path.c_str();
+        LogPrintf("Starting database compaction of %s\n", path.c_str();
         pdb->CompactRange(nullptr, nullptr);
-        log_print("Finished database compaction of %s\n", path.c_str()));
+        LogPrintf("Finished database compaction of %s\n", path.c_str()));
     }*/
 
     // The base-case obfuscation key, which is a noop.
@@ -112,10 +112,10 @@ CDBWrapper::CDBWrapper(const std::string& path, size_t nCacheSize, bool fMemory,
         Write(OBFUSCATE_KEY_KEY, new_key);
         obfuscate_key = new_key;
 
-        log_print("Wrote new obfuscate key for %s\n", path.c_str());
+        LogPrintf("Wrote new obfuscate key for %s\n", path.c_str());
     }
 
-    log_print("Using obfuscation key for %s\n", path.c_str());
+    LogPrintf("Using obfuscation key for %s\n", path.c_str());
 }
 
 CDBWrapper::~CDBWrapper()
@@ -143,7 +143,7 @@ bool CDBWrapper::WriteBatch(CDBBatch& batch, bool fSync)
     dbwrapper_private::HandleError(status);
     if (log_memory) {
         double mem_after = DynamicMemoryUsage() / 1024.0 / 1024;
-        log_print("WriteBatch memory usage: db=%s, before=%.1fMiB, after=%.1fMiB\n",
+        LogPrintf("WriteBatch memory usage: db=%s, before=%.1fMiB, after=%.1fMiB\n",
                  m_name.c_str(), mem_before, mem_after);
     }
     return true;
@@ -152,7 +152,7 @@ bool CDBWrapper::WriteBatch(CDBBatch& batch, bool fSync)
 size_t CDBWrapper::DynamicMemoryUsage() const {
     std::string memory;
     if (!pdb->GetProperty("leveldb.approximate-memory-usage", &memory)) {
-        log_print("Failed to get approximate-memory-usage property\n");
+        LogPrintf("Failed to get approximate-memory-usage property\n");
         return 0;
     }
     return stoul(memory);
@@ -197,7 +197,7 @@ void HandleError(const leveldb::Status& status)
     if (status.ok())
         return;
     const std::string errmsg = "Fatal LevelDB error: " + status.ToString();
-    log_print("%s\n", errmsg.c_str());
+    LogPrintf("%s\n", errmsg.c_str());
     throw dbwrapper_error(errmsg);
 }
 
@@ -208,7 +208,7 @@ const std::vector<unsigned char>& GetObfuscateKey(const CDBWrapper &w)
 
 } // namespace dbwrapper_private
 
-DatabaseLEVELDB::DatabaseLEVELDB() : db("/tmp/dummyleveldb", 300*1024*1024, false, false, true) {
+DatabaseLEVELDB::DatabaseLEVELDB(const std::string& path) : db(path, 300*1024*1024, false, false, true) {
 
 }
 
@@ -224,12 +224,6 @@ bool DatabaseLEVELDB::put(const uint8_t* key, unsigned int key_len, const uint8_
         cache.clear();
     }
 }
-
-
-bool DatabaseLEVELDB::open(const std::string& path) {
-    return true;
-}
-
 
 bool DatabaseLEVELDB::close() {
     return true;

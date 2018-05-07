@@ -360,7 +360,7 @@ private:
     CDBWrapper db;
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> cache;
 public:
-    DatabaseLEVELDB();
+    DatabaseLEVELDB(const std::string& path);
 
     bool open(const std::string& path);
     bool beginTXN();

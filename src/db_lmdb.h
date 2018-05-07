@@ -17,9 +17,8 @@ private:
     MDB_cursor *cursor;
 
 public:
-    DatabaseLMDB();
+    DatabaseLMDB(const std::string& path);
 
-    bool open(const std::string& path);
     bool beginTXN();
     bool put(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
     bool commitTXN();

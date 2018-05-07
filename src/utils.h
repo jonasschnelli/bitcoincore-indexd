@@ -12,10 +12,25 @@
 #include <map>
 #include <set>
 #include <stdint.h>
+#include <stdio.h>
 #include <string>
 #include <vector>
 
-int log_print(const char *format, ...);
+template<typename... Args> std::string FormatStringFromLogArgs(const char *fmt, const Args&... args) { return fmt; }
+
+#define LogPrintf(...) do { \
+    if (1==1) { \
+        std::string _log_msg_; /* Unlikely name to avoid shadowing variables */ \
+        try { \
+            _log_msg_ = tfm::format(__VA_ARGS__); \
+        } catch (tinyformat::format_error &fmterr) { \
+            /* Original format string will have newline so don't add one here */ \
+            _log_msg_ = "Error \"" + std::string(fmterr.what()) + "\" while formatting log message: " + FormatStringFromLogArgs(__VA_ARGS__); \
+        } \
+        fwrite(_log_msg_.data(), 1, _log_msg_.size(), stdout); \
+        fflush(stdout); \
+    } \
+} while(0)
 
 template<typename T>
 std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
@@ -53,7 +68,6 @@ protected:
     std::map<std::string, std::vector<std::string>> m_override_args;
     std::map<std::string, std::vector<std::string>> m_config_args;
     std::string m_network;
-    std::set<std::string> m_network_only_args;
 
     void ReadConfigStream(std::istream& stream);
 
@@ -157,8 +171,10 @@ public:
     std::string GetChainName() const;
 };
 
-extern ArgsManager gArgs;
+extern ArgsManager g_args;
 
 std::string itostr(int n);
+
+std::string GetDataDir();
 
 #endif // BITCOINCORE_INDEXD_UTILS_H
