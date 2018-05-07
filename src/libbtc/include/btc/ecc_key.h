@@ -21,20 +21,16 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
 #ifndef __LIBBTC_ECC_KEY_H__
 #define __LIBBTC_ECC_KEY_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 #include "chainparams.h"
 
-#include <stddef.h>
+LIBBTC_BEGIN_DECL
 
 typedef struct btc_key_ {
     uint8_t privkey[BTC_ECKEY_PKEY_LENGTH];
@@ -84,8 +80,6 @@ LIBBTC_API btc_bool btc_pubkey_getaddr_p2sh_p2wpkh(const btc_pubkey* pubkey, con
 LIBBTC_API btc_bool btc_pubkey_getaddr_p2pkh(const btc_pubkey* pubkey, const btc_chainparams* chain, char *addrout);
 LIBBTC_API btc_bool btc_pubkey_getaddr_p2wpkh(const btc_pubkey* pubkey, const btc_chainparams* chain, char *addrout);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_ECC_KEY_H__
+#endif // __LIBBTC_ECC_KEY_H__

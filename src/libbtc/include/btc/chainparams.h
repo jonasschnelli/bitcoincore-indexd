@@ -21,20 +21,15 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
 #ifndef __LIBBTC_CHAINPARAMS_H__
 #define __LIBBTC_CHAINPARAMS_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 
-#include <stdint.h>
-#include <sys/types.h>
+LIBBTC_BEGIN_DECL
 
 typedef struct btc_dns_seed_ {
     char domain[256];
@@ -68,8 +63,6 @@ extern const btc_chainparams btc_chainparams_regtest;
 // the mainnet checkpoins, needs a fix size
 extern const btc_checkpoint btc_mainnet_checkpoint_array[21];
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_CHAINPARAMS_H__
+#endif // __LIBBTC_CHAINPARAMS_H__

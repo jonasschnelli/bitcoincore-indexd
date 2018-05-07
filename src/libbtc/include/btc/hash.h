@@ -27,18 +27,13 @@
 #ifndef __LIBBTC_HASH_H__
 #define __LIBBTC_HASH_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stddef.h>
-#include <string.h>
-
 #include "btc.h"
-
 #include "cstr.h"
+#include "memory.h"
 #include "sha2.h"
 #include "vector.h"
+
+LIBBTC_BEGIN_DECL
 
 LIBBTC_API static inline btc_bool btc_hash_is_empty(uint256 hash)
 {
@@ -73,8 +68,6 @@ LIBBTC_API static inline void btc_hash_sngl_sha256(const unsigned char* datain, 
     sha256_Raw(datain, length, hashout);
 }
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_HASH_H__
+#endif // __LIBBTC_HASH_H__

@@ -4,9 +4,7 @@
  */
 
 #include <btc/buffer.h>
-
-#include <stdlib.h>
-#include <string.h>
+#include <btc/memory.h>
 
 int buffer_equal(const void* a_, const void* b_)
 {

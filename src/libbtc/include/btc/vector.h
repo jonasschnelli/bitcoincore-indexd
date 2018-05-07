@@ -27,14 +27,9 @@
 #ifndef __LIBBTC_VECTOR_H__
 #define __LIBBTC_VECTOR_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 
-#include <stdlib.h>
-#include <sys/types.h>
+LIBBTC_BEGIN_DECL
 
 typedef struct vector {
     void** data;  /* array of pointers */
@@ -57,8 +52,6 @@ LIBBTC_API ssize_t vector_find(vector* vec, void* data);
 
 #define vector_idx(vec, idx) ((vec)->data[(idx)])
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif /* __LIBBTC_VECTOR_H__ */
+#endif // __LIBBTC_VECTOR_H__

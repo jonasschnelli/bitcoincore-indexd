@@ -21,19 +21,15 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
 #ifndef __LIBBTC_ECC_H__
 #define __LIBBTC_ECC_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 
-#include <stddef.h>
+LIBBTC_BEGIN_DECL
 
 //!init static ecc context
 LIBBTC_API void btc_ecc_start(void);
@@ -77,8 +73,6 @@ LIBBTC_API btc_bool btc_ecc_der_to_compact(unsigned char* sigder_in, size_t sigd
 //!verify DER signature with public key
 LIBBTC_API btc_bool btc_ecc_verify_sig(const uint8_t* public_key, btc_bool compressed, const uint256 hash, unsigned char* sigder, size_t siglen);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_ECC_H__
+#endif // __LIBBTC_ECC_H__

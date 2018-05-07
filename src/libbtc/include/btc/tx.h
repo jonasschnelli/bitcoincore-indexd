@@ -24,25 +24,17 @@
 
 */
 
-
 #ifndef __LIBBTC_TX_H__
 #define __LIBBTC_TX_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stddef.h>
-#include <stdint.h>
-
 #include "btc.h"
-
 #include "chainparams.h"
 #include "cstr.h"
 #include "hash.h"
 #include "script.h"
 #include "vector.h"
 
+LIBBTC_BEGIN_DECL
 
 typedef struct btc_script_ {
     int* data;
@@ -126,8 +118,6 @@ enum btc_tx_sign_result {
 const char* btc_tx_sign_result_to_str(const enum btc_tx_sign_result result);
 enum btc_tx_sign_result btc_tx_sign_input(btc_tx *tx_in_out, const cstring *script, uint64_t amount, const btc_key *privkey, int inputindex, int sighashtype, uint8_t *sigcompact_out, uint8_t *sigder_out, int *sigder_len);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_TX_H__
+#endif // __LIBBTC_TX_H__

@@ -32,14 +32,7 @@
 #ifndef __LIBBTC_SHA2_H__
 #define __LIBBTC_SHA2_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
-
-#include <stddef.h>
-#include <stdint.h>
 
 #define SHA256_BLOCK_LENGTH 64
 #define SHA256_DIGEST_LENGTH 32
@@ -48,11 +41,14 @@ extern "C" {
 #define SHA512_DIGEST_LENGTH 64
 #define SHA512_DIGEST_STRING_LENGTH (SHA512_DIGEST_LENGTH * 2 + 1)
 
+LIBBTC_BEGIN_DECL
+
 typedef struct _SHA256_CTX {
     uint32_t state[8];
     uint64_t bitcount;
     uint8_t buffer[SHA256_BLOCK_LENGTH];
 } SHA256_CTX;
+
 typedef struct _SHA512_CTX {
     uint64_t state[8];
     uint64_t bitcount[2];
@@ -72,8 +68,6 @@ LIBBTC_API void sha512_Raw(const uint8_t*, size_t, uint8_t[SHA512_DIGEST_LENGTH]
 LIBBTC_API void hmac_sha256(const uint8_t* key, const uint32_t keylen, const uint8_t* msg, const uint32_t msglen, uint8_t* hmac);
 LIBBTC_API void hmac_sha512(const uint8_t* key, const uint32_t keylen, const uint8_t* msg, const uint32_t msglen, uint8_t* hmac);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif /* __LIBBTC_SHA2_H__ */
+#endif // __LIBBTC_SHA2_H__

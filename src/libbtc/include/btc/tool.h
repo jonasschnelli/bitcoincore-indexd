@@ -21,21 +21,16 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
 #ifndef __LIBBTC_TOOL_H__
 #define __LIBBTC_TOOL_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 #include "tx.h"
 
-#include <stddef.h>
-#include <stdint.h>
+LIBBTC_BEGIN_DECL
 
 /* generate the p2pkh address from a given hex pubkey */
 LIBBTC_API btc_bool addresses_from_pubkey(const btc_chainparams* chain, const char* pubkey_hex, char* p2pkh_address, char* p2sh_p2wpkh_address, char *p2wpkh_address);
@@ -50,8 +45,6 @@ LIBBTC_API btc_bool hd_gen_master(const btc_chainparams* chain, char* masterkeyh
 LIBBTC_API btc_bool hd_print_node(const btc_chainparams* chain, const char* nodeser);
 LIBBTC_API btc_bool hd_derive(const btc_chainparams* chain, const char* masterkey, const char* keypath, char* extkeyout, size_t extkeyout_size);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_TOOL_H__
+#endif // __LIBBTC_TOOL_H__

@@ -24,15 +24,13 @@
 #ifndef __LIBBTC_BASE58_H__
 #define __LIBBTC_BASE58_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 
 #include <btc/chainparams.h>
 
 #include <stdint.h>
+
+LIBBTC_BEGIN_DECL
 
 LIBBTC_API int btc_base58_encode_check(const uint8_t* data, int len, char* str, int strsize);
 LIBBTC_API int btc_base58_decode_check(const char* str, uint8_t* data, size_t datalen);
@@ -43,8 +41,6 @@ LIBBTC_API int btc_base58_decode(void* bin, size_t* binszp, const char* b58);
 LIBBTC_API btc_bool btc_p2pkh_addr_from_hash160(const uint160 hashin, const btc_chainparams* chain, char *addrout, int len);
 LIBBTC_API btc_bool btc_p2wpkh_addr_from_hash160(const uint160 hashin, const btc_chainparams* chain, char *addrout);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_BASE58_H__
+#endif // __LIBBTC_BASE58_H__

@@ -18,27 +18,21 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
-#ifndef __LIBBTC_AES256_CBC_H_
-#define __LIBBTC_AES256_CBC_H_
-
-#define AES_BLOCK_SIZE 16
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef __LIBBTC_AES256_CBC_H__
+#define __LIBBTC_AES256_CBC_H__
 
 #include "btc.h"
 
-#include <stddef.h>
+#define AES_BLOCK_SIZE 16
+
+LIBBTC_BEGIN_DECL
 
 LIBBTC_API int aes256_cbc_encrypt(const unsigned char aes_key[32], const unsigned char iv[AES_BLOCK_SIZE], const unsigned char* data, int size, int pad, unsigned char* out);
 LIBBTC_API int aes256_cbc_decrypt(const unsigned char aes_key[32], const unsigned char iv[AES_BLOCK_SIZE], const unsigned char* data, int size, int pad, unsigned char* out);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif /* __LIBBTC_AES256_CBC_H_ */
+#endif // __LIBBTC_AES256_CBC_H__

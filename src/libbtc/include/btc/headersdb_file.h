@@ -21,24 +21,19 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
 #ifndef __LIBBTC_HEADERSDB_FILE_H__
 #define __LIBBTC_HEADERSDB_FILE_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 #include "blockchain.h"
 #include "buffer.h"
 #include "chainparams.h"
-
 #include "headersdb.h"
 
-#include <stdio.h>
+LIBBTC_BEGIN_DECL
 
 /* filebased headers database (including binary tree option for fast access)
 */
@@ -91,4 +86,4 @@ static const btc_headers_db_interface btc_headers_db_interface_file = {
 }
 #endif
 
-#endif //__LIBBTC_HEADERSDB_FILE_H__
+#endif // __LIBBTC_HEADERSDB_FILE_H__
