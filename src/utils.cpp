@@ -22,3 +22,8 @@ int64_t GetTimeMillis()
     assert(now > 0);
     return now;
 }
+
+std::string itostr(int n)
+{
+    return strprintf("%d", n);
+}

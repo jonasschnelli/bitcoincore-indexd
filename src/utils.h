@@ -5,11 +5,15 @@
 #ifndef BITCOINCORE_INDEXD_UTILS_H
 #define BITCOINCORE_INDEXD_UTILS_H
 
+#include <sync.h>
+#include <tinyformat.h>
+
+#include <chrono>
+#include <map>
+#include <set>
 #include <stdint.h>
 #include <string>
 #include <vector>
-
-#include <chrono>
 
 int log_print(const char *format, ...);
 
@@ -39,5 +43,122 @@ inline std::string HexStr(const T& vch, bool fSpaces=false)
 }
 
 int64_t GetTimeMillis();
+
+class ArgsManager
+{
+protected:
+    friend class ArgsManagerHelper;
+
+    mutable CCriticalSection cs_args;
+    std::map<std::string, std::vector<std::string>> m_override_args;
+    std::map<std::string, std::vector<std::string>> m_config_args;
+    std::string m_network;
+    std::set<std::string> m_network_only_args;
+
+    void ReadConfigStream(std::istream& stream);
+
+public:
+    ArgsManager();
+
+    /**
+     * Select the network in use
+     */
+    void SelectConfigNetwork(const std::string& network);
+
+    void ParseParameters(int argc, const char*const argv[]);
+    void ReadConfigFile(const std::string& confPath);
+
+    /**
+     * Log warnings for options in m_section_only_args when
+     * they are specified in the default section but not overridden
+     * on the command line or in a network-specific section in the
+     * config file.
+     */
+    void WarnForSectionOnlyArgs();
+
+    /**
+     * Return a vector of strings of the given argument
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return command-line arguments
+     */
+    std::vector<std::string> GetArgs(const std::string& strArg) const;
+
+    /**
+     * Return true if the given argument has been manually set
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return true if the argument has been set
+     */
+    bool IsArgSet(const std::string& strArg) const;
+
+    /**
+     * Return true if the argument was originally passed as a negated option,
+     * i.e. -nofoo.
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @return true if the argument was passed negated
+     */
+    bool IsArgNegated(const std::string& strArg) const;
+
+    /**
+     * Return string argument or default value
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @param strDefault (e.g. "1")
+     * @return command-line argument or default value
+     */
+    std::string GetArg(const std::string& strArg, const std::string& strDefault) const;
+
+    /**
+     * Return integer argument or default value
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @param nDefault (e.g. 1)
+     * @return command-line argument (0 if invalid number) or default value
+     */
+    int64_t GetArg(const std::string& strArg, int64_t nDefault) const;
+
+    /**
+     * Return boolean argument or default value
+     *
+     * @param strArg Argument to get (e.g. "-foo")
+     * @param fDefault (true or false)
+     * @return command-line argument or default value
+     */
+    bool GetBoolArg(const std::string& strArg, bool fDefault) const;
+
+    /**
+     * Set an argument if it doesn't already have a value
+     *
+     * @param strArg Argument to set (e.g. "-foo")
+     * @param strValue Value (e.g. "1")
+     * @return true if argument gets set, false if it already had a value
+     */
+    bool SoftSetArg(const std::string& strArg, const std::string& strValue);
+
+    /**
+     * Set a boolean argument if it doesn't already have a value
+     *
+     * @param strArg Argument to set (e.g. "-foo")
+     * @param fValue Value (e.g. false)
+     * @return true if argument gets set, false if it already had a value
+     */
+    bool SoftSetBoolArg(const std::string& strArg, bool fValue);
+
+    // Forces an arg setting. Called by SoftSetArg() if the arg hasn't already
+    // been set. Also called directly in testing.
+    void ForceSetArg(const std::string& strArg, const std::string& strValue);
+
+    /**
+     * Looks for -regtest, -testnet and returns the appropriate BIP70 chain name.
+     * @return CBaseChainParams::MAIN by default; raises runtime error if an invalid combination is given.
+     */
+    std::string GetChainName() const;
+};
+
+extern ArgsManager gArgs;
+
+std::string itostr(int n);
 
 #endif // BITCOINCORE_INDEXD_UTILS_H

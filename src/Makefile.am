@@ -26,20 +26,24 @@ bin_PROGRAMS = bitcoincore-indexd
 
 BITCOINCORE_INDEXD_H = \
     btcnode.h \
-    utils.h \
     dbinterface.h \
-    db_lmdb.h \
-    db_leveldb.h
+    sync.h \
+    threadsafety.h \
+    tinyformat.h \
+    utils.h
 
 DATABASE_LMDB_SOURCES = \
+    db_lmdb.h \
     db_lmdb.cpp
 
 DATABASE_LEVELDB_SOURCES = \
+    db_leveldb.h \
     db_leveldb.cpp
     
 BITCOINCORE_INDEXD_SOURCES = \
     btcnode.cpp \
     main.cpp \
+    sync.cpp \
     utils.cpp \
     $(BITCOINCORE_INDEXD_H) \
     $(DATABASE_LMDB_SOURCES) \
