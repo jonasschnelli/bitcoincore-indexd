@@ -1,5 +1,9 @@
-#ifndef DATABASELMDB_H
-#define DATABASELMDB_H
+// Copyright (c) 2018 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOINCORE_INDEXD_DB_LMDB_H
+#define BITCOINCORE_INDEXD_DB_LMDB_H
 
 #include <dbinterface.h>
 #include <lmdb.h>
@@ -22,4 +26,4 @@ public:
     bool close();
 };
 
-#endif // DATABASELMDB_H
+#endif // BITCOINCORE_INDEXD_DB_LMDB_H

@@ -1,5 +1,9 @@
-#ifndef UTILS_H
-#define UTILS_H
+// Copyright (c) 2018 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOINCORE_INDEXD_UTILS_H
+#define BITCOINCORE_INDEXD_UTILS_H
 
 #include <stdint.h>
 #include <string>
@@ -36,4 +40,4 @@ inline std::string HexStr(const T& vch, bool fSpaces=false)
 
 int64_t GetTimeMillis();
 
-#endif // UTILS_H
+#endif // BITCOINCORE_INDEXD_UTILS_H

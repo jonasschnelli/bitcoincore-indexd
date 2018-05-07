@@ -237,7 +237,6 @@ BTCNodePriv::BTCNodePriv(BTCNode *node_in) : m_node(node_in) {
 
 BTCNode::BTCNode(IndexDatabaseInterface *db_in) : db(db_in), bestblock(0), priv(new BTCNodePriv(this)) {
     btc_node *node = btc_node_new();
-    //btc_node_set_ipport(node, "138.201.55.219:8333");
     btc_node_set_ipport(node, "127.0.0.1:8333");
     btc_node_group_add_node(priv->m_group, node);
 }
@@ -252,4 +251,27 @@ void BTCNode::SyncBlocks() {
     priv->syncblocks = true;
     btc_node_group_connect_next_nodes(priv->m_group);
     btc_node_group_event_loop(priv->m_group);
+}
+
+bool BTCNode::AddHeader(uint8_t* t, uint8_t* prevhash) {
+    if (m_headers.size() > 0 && m_headers.back()->m_hash != prevhash) {
+        log_print("Failed to connect header");
+        return false;
+    }
+    HeaderEntry *hEntry = new HeaderEntry(t, m_headers.size());
+    m_headers.push_back(hEntry);
+    m_blocks[m_headers.back()->m_hash] = hEntry;
+    return true;
+}
+
+void BTCNode::processTXID(const Hash256& block, const Hash256& tx) {
+    if (m_txnsize == 0) {
+        db->beginTXN();
+    }
+    db->put(tx.m_data, 32, block.m_data, 32);
+    if (++m_txnsize == 10000) {
+        uint64_t s = GetTimeMillis();
+        db->commitTXN();
+        m_txnsize = 0;
+    }
 }

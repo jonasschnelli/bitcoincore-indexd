@@ -1,5 +1,5 @@
-#ifndef BTCNODE_H
-#define BTCNODE_H
+#ifndef BITCOINCORE_INDEXD_BTCNODE_H
+#define BITCOINCORE_INDEXD_BTCNODE_H
 
 #include <vector>
 #include <map>
@@ -58,37 +58,11 @@ public:
     BTCNode(IndexDatabaseInterface *db_in);
     void SyncHeaders();
     void SyncBlocks();
-    bool AddHeader(uint8_t* t, uint8_t* prevhash) {
-        if (m_headers.size() > 0 && m_headers.back()->m_hash != prevhash) {
-            log_print("Failed to connect header");
-            return false;
-        }
-        HeaderEntry *hEntry = new HeaderEntry(t, m_headers.size());
-        m_headers.push_back(hEntry);
-        m_blocks[m_headers.back()->m_hash] = hEntry;
-        return true;
-    }
-    unsigned int GetHeight() {
-        return m_headers.size();
-    }
-    const uint8_t * GetRawBestBlockHash() {
-        return m_headers.back()->m_hash.m_data;
-    }
-    void processTXID(const Hash256& block, const Hash256& tx) {
-        if (m_txnsize == 0) {
-            db->beginTXN();
-        }
-        //uint64_t s = GetTimeMillis();
-        db->put(tx.m_data, 32, block.m_data, 32);
-        //printf("PUT %lld\n", GetTimeMillis()-s);
-        if (++m_txnsize == 10000) {
-            uint64_t s = GetTimeMillis();
-            db->commitTXN();
-            printf("Commit DB TXN %lld\n", GetTimeMillis()-s);
-            m_txnsize = 0;
-        }
-    }
+    bool AddHeader(uint8_t* t, uint8_t* prevhash);
+    unsigned int GetHeight() { return m_headers.size(); }
+    const uint8_t * GetRawBestBlockHash() { return m_headers.back()->m_hash.m_data; }
+    void processTXID(const Hash256& block_hash, const Hash256& tx_hash);
     BTCNodePriv *priv;
 };
 
-#endif // BTCNODE_H
+#endif // BITCOINCORE_INDEXD_BTCNODE_H

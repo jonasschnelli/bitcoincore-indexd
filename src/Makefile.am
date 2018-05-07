@@ -28,14 +28,14 @@ BITCOINCORE_INDEXD_H = \
     btcnode.h \
     utils.h \
     dbinterface.h \
-    databaselmdb.h \
-    dbwrapper.h
+    db_lmdb.h \
+    db_leveldb.h
 
 DATABASE_LMDB_SOURCES = \
-    databaselmdb.cpp
+    db_lmdb.cpp
 
 DATABASE_LEVELDB_SOURCES = \
-    dbwrapper.cpp
+    db_leveldb.cpp
     
 BITCOINCORE_INDEXD_SOURCES = \
     btcnode.cpp \
