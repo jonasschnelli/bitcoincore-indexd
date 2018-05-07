@@ -21,20 +21,18 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
 #ifndef __LIBBTC_NETSPV_H__
 #define __LIBBTC_NETSPV_H__
 
 #include "btc.h"
-#include <btc/blockchain.h>
-#include <btc/headersdb.h>
-#include <btc/tx.h>
+#include "blockchain.h"
+#include "headersdb.h"
+#include "tx.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+LIBBTC_BEGIN_DECL
 
 enum SPV_CLIENT_STATE {
     SPV_HEADER_SYNC_FLAG        = (1 << 0),
@@ -90,8 +88,6 @@ LIBBTC_API void btc_spv_client_runloop(btc_spv_client *client);
 /* try to request headers from a single node in the nodegroup */
 LIBBTC_API btc_bool btc_net_spv_request_headers(btc_spv_client *client);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_NETSPV_H__
+#endif // __LIBBTC_NETSPV_H__

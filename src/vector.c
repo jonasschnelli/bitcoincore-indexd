@@ -25,8 +25,7 @@
  */
 
 #include <btc/vector.h>
-
-#include <string.h>
+#include <btc/memory.h>
 
 vector* vector_new(size_t res, void (*free_f)(void*))
 {

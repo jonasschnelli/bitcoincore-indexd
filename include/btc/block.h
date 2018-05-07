@@ -22,23 +22,18 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
-#ifndef LIBBTC_BLOCK_H
-#define LIBBTC_BLOCK_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef __LIBBTC_BLOCK_H__
+#define __LIBBTC_BLOCK_H__
 
 #include "btc.h"
-
 #include "buffer.h"
 #include "cstr.h"
 #include "hash.h"
 
-#include <stddef.h>
+LIBBTC_BEGIN_DECL
 
 typedef struct btc_block_header_ {
     int32_t version;
@@ -56,8 +51,6 @@ LIBBTC_API void btc_block_header_serialize(cstring* s, const btc_block_header* h
 LIBBTC_API void btc_block_header_copy(btc_block_header* dest, const btc_block_header* src);
 LIBBTC_API btc_bool btc_block_header_hash(btc_block_header* header, uint256 hash);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_BLOCK_H__
+#endif // __LIBBTC_BLOCK_H__

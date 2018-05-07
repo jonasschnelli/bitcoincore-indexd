@@ -27,14 +27,9 @@
 #ifndef __LIBBTC_RANDOM_H__
 #define __LIBBTC_RANDOM_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 
-#include <stdint.h>
-#include <stdlib.h>
+LIBBTC_BEGIN_DECL
 
 typedef struct btc_rnd_mapper_ {
     void (*btc_random_init)(void);
@@ -49,8 +44,6 @@ LIBBTC_API void btc_rnd_set_mapper_default();
 LIBBTC_API void btc_random_init(void);
 LIBBTC_API btc_bool btc_random_bytes(uint8_t* buf, uint32_t len, const uint8_t update_seed);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_TX_H__
+#endif // __LIBBTC_TX_H__

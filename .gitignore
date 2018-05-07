@@ -36,7 +36,7 @@ m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
 src/stamp-h1
-libbtc256k1.pc
+libbtc.pc
 *.DS_Store
 *.gcda
 *.gcov

@@ -27,15 +27,12 @@
 #ifndef __LIBBTC_PROTOCOL_H__
 #define __LIBBTC_PROTOCOL_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
-
 #include "buffer.h"
 #include "cstr.h"
 #include "vector.h"
+
+LIBBTC_BEGIN_DECL
 
 #ifdef _WIN32
 #include <getopt.h>
@@ -64,6 +61,7 @@ static const char* BTC_MSG_PONG = "pong";
 static const char* BTC_MSG_GETDATA = "getdata";
 static const char* BTC_MSG_GETHEADERS = "getheaders";
 static const char* BTC_MSG_HEADERS = "headers";
+static const char* BTC_MSG_GETBLOCKS = "getblocks";
 static const char* BTC_MSG_BLOCK = "block";
 static const char* BTC_MSG_INV = "inv";
 static const char* BTC_MSG_TX = "tx";
@@ -109,6 +107,27 @@ typedef struct btc_p2p_version_msg_ {
     int32_t start_height;
     uint8_t relay;
 } btc_p2p_version_msg;
+
+/** getdata message type flags */
+static const uint32_t MSG_TYPE_MASK    = 0xffffffff >> 2;
+
+/** getdata / inv message types.
+ * These numbers are defined by the protocol. When adding a new value, be sure
+ * to mention it in the respective BIP.
+ */
+enum GetDataMsg
+{
+    MSG_TX = 1,
+    MSG_BLOCK = 2,
+    // ORed into other flags to add witness
+    MSG_WITNESS_FLAG = 1 << 30,
+    // The following can only occur in getdata. Invs always use TX or BLOCK.
+    MSG_FILTERED_BLOCK = 3,  //!< Defined in BIP37
+    MSG_CMPCT_BLOCK = 4,     //!< Defined in BIP152
+    MSG_WITNESS_BLOCK = MSG_BLOCK | MSG_WITNESS_FLAG, //!< Defined in BIP144
+    MSG_WITNESS_TX = MSG_TX | MSG_WITNESS_FLAG,       //!< Defined in BIP144
+    MSG_FILTERED_WITNESS_BLOCK = MSG_FILTERED_BLOCK | MSG_WITNESS_FLAG,
+};
 
 /* =================================== */
 /* VERSION MESSAGE */
@@ -178,9 +197,6 @@ LIBBTC_API void btc_p2p_msg_getheaders(vector* blocklocators, uint256 hashstop, 
 /* directly deserialize a getheaders message to blocklocators, hashstop */
 LIBBTC_API btc_bool btc_p2p_deser_msg_getheaders(vector* blocklocators, uint256 hashstop, struct const_buffer* buf);
 
-
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
 #endif // __LIBBTC_PROTOCOL_H__

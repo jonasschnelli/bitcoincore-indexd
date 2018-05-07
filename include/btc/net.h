@@ -27,18 +27,16 @@
 #ifndef __LIBBTC_NET_H__
 #define __LIBBTC_NET_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <event2/event.h>
-
 #include "btc.h"
 #include "buffer.h"
 #include "chainparams.h"
 #include "cstr.h"
 #include "protocol.h"
 #include "vector.h"
+
+LIBBTC_BEGIN_DECL
+
+#include <event2/event.h>
 
 static const unsigned int BTC_P2P_MESSAGE_CHUNK_SIZE = 4096;
 
@@ -164,8 +162,6 @@ LIBBTC_API void btc_node_connection_state_changed(btc_node* node);
 LIBBTC_API btc_bool btc_node_group_add_peers_by_ip_or_seed(btc_node_group *group, const char *ips);
 LIBBTC_API int btc_get_peers_from_dns(const char* seed, vector* ips_out, int port, int family);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_NET_H__
+#endif // __LIBBTC_NET_H__

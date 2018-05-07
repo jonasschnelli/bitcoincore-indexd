@@ -27,16 +27,12 @@
 #ifndef __LIBBTC_SCRIPT_H__
 #define __LIBBTC_SCRIPT_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
-
 #include "cstr.h"
-
 #include "ecc_key.h"
 #include "vector.h"
+
+LIBBTC_BEGIN_DECL
 
 /** Sighash version types */
 enum btc_sig_version
@@ -240,8 +236,6 @@ LIBBTC_API const char * btc_tx_out_type_to_str(const enum btc_tx_out_type type);
 
 LIBBTC_API btc_bool btc_script_is_witnessprogram(const cstring* script, uint8_t* version_out, uint8_t *program_out, int *programm_len_out);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
 #endif // __LIBBTC_SCRIPT_H__
