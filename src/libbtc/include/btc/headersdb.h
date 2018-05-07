@@ -21,22 +21,19 @@
  OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  OTHER DEALINGS IN THE SOFTWARE.
- 
+
 */
 
 #ifndef __LIBBTC_HEADERSDB_H__
 #define __LIBBTC_HEADERSDB_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "btc.h"
 #include "blockchain.h"
 #include "buffer.h"
 #include "chainparams.h"
 
-#include <stdio.h>
+LIBBTC_BEGIN_DECL
+
 #include <logdb/logdb.h>
 #include <logdb/logdb_rec.h>
 
@@ -73,9 +70,6 @@ typedef struct btc_headers_db_interface_
     void (*set_checkpoint_start)(void *db, uint256 hash, uint32_t height);
 } btc_headers_db_interface;
 
+LIBBTC_END_DECL
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif //__LIBBTC_HEADERSDB_H__
+#endif // __LIBBTC_HEADERSDB_H__

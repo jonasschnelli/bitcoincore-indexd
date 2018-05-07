@@ -27,20 +27,13 @@
 #ifndef __LIBBTC_WALLET_H__
 #define __LIBBTC_WALLET_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
-
-#include <btc/blockchain.h>
-
+#include "blockchain.h"
 #include "bip32.h"
 #include "buffer.h"
 #include "tx.h"
 
-#include <stddef.h>
-#include <stdint.h>
+LIBBTC_END_DECL
 
 /** single key/value record */
 typedef struct btc_wallet {
@@ -136,8 +129,6 @@ LIBBTC_API btc_bool btc_wallet_get_unspent(btc_wallet* wallet, vector* unspents)
 /** checks a transaction or relevance to the wallet */
 LIBBTC_API void btc_wallet_check_transaction(void *ctx, btc_tx *tx, unsigned int pos, btc_blockindex *pindex);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_WALLET_H__
+#endif // __LIBBTC_WALLET_H__

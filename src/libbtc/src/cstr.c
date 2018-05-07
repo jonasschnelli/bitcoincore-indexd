@@ -4,9 +4,7 @@
  */
 
 #include <btc/cstr.h>
-
-#include <stdlib.h>
-#include <string.h>
+#include <btc/memory.h>
 
 static int cstr_alloc_min_sz(cstring* s, size_t sz)
 {

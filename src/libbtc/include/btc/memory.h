@@ -27,13 +27,9 @@
 #ifndef __LIBBTC_MEMORY_H__
 #define __LIBBTC_MEMORY_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "btc.h"
 
-#include <stddef.h>
+LIBBTC_BEGIN_DECL
 
 typedef struct btc_mem_mapper_ {
     void* (*btc_malloc)(size_t size);
@@ -54,8 +50,6 @@ LIBBTC_API void btc_free(void* ptr);
 
 LIBBTC_API volatile void *btc_mem_zero(volatile void *dst, size_t len);
 
-#ifdef __cplusplus
-}
-#endif
+LIBBTC_END_DECL
 
-#endif //__LIBBTC_MEMORY_H__
+#endif // __LIBBTC_MEMORY_H__
