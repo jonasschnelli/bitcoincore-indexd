@@ -69,7 +69,7 @@ void request_blocks(btc_node *node)
             continue;
         }
         printf("Request block at height: %d\n", header->m_height);
-        ser_u32(inv_msg_cstr, 2);
+        ser_u32(inv_msg_cstr, MSG_WITNESS_BLOCK);
         ser_bytes(inv_msg_cstr, header->m_hash.m_data, BTC_HASH_LENGTH);
         pnode->m_blocks_in_flight[header->m_hash] = header;
         header->setRequested();
