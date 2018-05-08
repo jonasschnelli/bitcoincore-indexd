@@ -24,18 +24,6 @@ public:
 
 };
 
-static unsigned int blocks_in_flight = 0;
-static unsigned int blocks_total = 0;
-static uint256 bestblockhash = {0};
-static btc_bool timer_cb(btc_node *node, uint64_t *now)
-{
-    if (node->time_started_con + 300 < *now)
-        btc_node_disconnect(node);
-
-    /* return true = run internal timer logic (ping, disconnect-timeout, etc.) */
-    return true;
-}
-
 btc_bool parse_cmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *buf)
 {
     (void)(node);
@@ -120,8 +108,6 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
         uint8_t hash[32];
         btc_block_header_hash(&header, hash);
 
-        blocks_in_flight--;
-        blocks_total++;
         Hash256 blockhash(hash);
         auto it = pnode->m_blocks_in_flight.find(blockhash);
         if (it != pnode->m_blocks_in_flight.end()) {
@@ -130,7 +116,6 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
         else {
             printf("BLOCK NOT FOUND %s\n", blockhash.GetHex().c_str());
         }
-        //uint64_t s = GetTimeMillis();
         for (unsigned int i = 0; i < vsize; i++)
         {
             btc_tx *tx = btc_tx_new(); //needs to be on the heep
@@ -156,12 +141,6 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
         if (pnode->m_blocks_in_flight.size() == 0) {
             request_blocks(node);
         }
-        if (blocks_in_flight == 0) {
-            char buf[128];
-            utils_bin_to_hex(bestblockhash, 32, buf);
-            //printf("Total: %d, best block: %s\n", blocks_total, buf);
-        }
-        //printf("Re-Request %lld\n", GetTimeMillis()-s);
     }
 
     if (strcmp(hdr->command, BTC_MSG_HEADERS) == 0)
@@ -264,17 +243,10 @@ bool BTCNode::AddHeader(uint8_t* t, uint8_t* prevhash) {
     HeaderEntry *hEntry = new HeaderEntry(t, m_headers.size());
     m_headers.push_back(hEntry);
     m_blocks[m_headers.back()->m_hash] = hEntry;
+    //db->put_header(t, 32, 0, 1);
     return true;
 }
 
 void BTCNode::processTXID(const Hash256& block, const Hash256& tx) {
-    if (m_txnsize == 0) {
-        db->beginTXN();
-    }
-    db->put(tx.m_data, 32, block.m_data, 32);
-    if (++m_txnsize == 10000) {
-        uint64_t s = GetTimeMillis();
-        db->commitTXN();
-        m_txnsize = 0;
-    }
+    db->put_txindex(tx.m_data, 32, block.m_data, 32);
 }

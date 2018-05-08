@@ -175,6 +175,7 @@ extern ArgsManager g_args;
 
 std::string itostr(int n);
 
+void CreateDir(const std::string& path);
 std::string GetDataDir();
 
 #endif // BITCOINCORE_INDEXD_UTILS_H

@@ -347,6 +347,15 @@ std::string GetSpecialFolderPath(int nFolder, bool fCreate)
 }
 #endif
 
+void CreateDir(const std::string& path)
+{
+#if defined WIN32
+    mkdir(path.c_str());
+#elif defined __GNUC__
+    mkdir(path.c_str(), 0755);
+#endif
+}
+
 std::string GetDataDir()
 {
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\Bitcoin

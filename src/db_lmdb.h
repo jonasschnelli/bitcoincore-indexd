@@ -16,12 +16,14 @@ private:
     MDB_txn *m_txn;
     MDB_cursor *cursor;
 
+    int m_txnsize = 0;
+    bool beginTXN();
+    bool commitTXN();
+
 public:
     DatabaseLMDB(const std::string& path);
-
-    bool beginTXN();
-    bool put(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
-    bool commitTXN();
+    bool put_txindex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
+    bool put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
     bool close();
 };
 

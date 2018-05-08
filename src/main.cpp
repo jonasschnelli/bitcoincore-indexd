@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
 {
     g_args.ParseParameters(argc, argv);
 
+    CreateDir(GetDataDir());
     IndexDatabaseInterface *db = nullptr;
     if (g_args.GetArg("-database", DEFAULT_DB) == "leveldb") {
         db = new DatabaseLEVELDB(GetDataDir()+"/db_leveldb");

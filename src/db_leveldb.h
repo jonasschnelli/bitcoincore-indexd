@@ -202,17 +202,6 @@ private:
     //! the name of this database
     std::string m_name;
 
-    //! a key used for optional XOR-obfuscation of the database
-    std::vector<unsigned char> obfuscate_key;
-
-    //! the key under which the obfuscation key is stored
-    static const std::string OBFUSCATE_KEY_KEY;
-
-    //! the length of the obfuscate key in number of bytes
-    static const unsigned int OBFUSCATE_KEY_NUM_BYTES;
-
-    std::vector<unsigned char> CreateObfuscateKey() const;
-
 public:
     /**
      * @param[in] path        Location in the filesystem where leveldb data will be stored.
@@ -363,9 +352,8 @@ public:
     DatabaseLEVELDB(const std::string& path);
 
     bool open(const std::string& path);
-    bool beginTXN();
-    bool put(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
-    bool commitTXN();
+    bool put_txindex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
+    bool put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
     bool close();
 };
 

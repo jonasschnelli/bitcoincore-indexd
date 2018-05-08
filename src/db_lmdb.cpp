@@ -10,7 +10,7 @@ DatabaseLMDB::DatabaseLMDB(const std::string& path) {
     int rc = 0;
     rc = mdb_env_create(&m_env);
     rc = mdb_env_set_mapsize(m_env, 21474836480); //20GB
-    rc = mdb_env_open(m_env, "/tmp/dummy", MDB_NOSYNC | MDB_NOSUBDIR, 0664);
+    rc = mdb_env_open(m_env, path.c_str(), MDB_NOSYNC | MDB_NOSUBDIR, 0664);
     rc = mdb_txn_begin(m_env, NULL, 0, &m_txn);
     rc = mdb_open(m_txn, NULL, 0, &m_dbi);
     mdb_txn_abort(m_txn);
@@ -21,12 +21,16 @@ bool DatabaseLMDB::beginTXN() {
     return true;
 }
 
-bool DatabaseLMDB::put(const uint8_t* key_in, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+bool DatabaseLMDB::put_txindex(const uint8_t* key_in, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
     MDB_val key, data, data_r;
     key.mv_size = key_len;
     key.mv_data = (void *)key_in;
     data.mv_size = value_len;
     data.mv_data = (void *)value;
+
+    if (m_txnsize == 0) {
+        beginTXN();
+    }
 
 //    std::vector<uint8_t> hex_k(std::reverse_iterator<uint8_t*>((uint8_t*)key.mv_data + key.mv_size), std::reverse_iterator<uint8_t*>((uint8_t*)key.mv_data));
 
@@ -45,8 +49,17 @@ bool DatabaseLMDB::put(const uint8_t* key_in, unsigned int key_len, const uint8_
         printf("ERROR PUT %d\n", rc);
         return false;
     }
+    if (++m_txnsize == 10000) {
+        commitTXN();
+        m_txnsize = 0;
+    }
     return true;
 }
+
+bool DatabaseLMDB::put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+    return true;
+}
+
 bool DatabaseLMDB::commitTXN() {
     int rc = mdb_txn_commit(m_txn);
     if (rc) {
@@ -59,6 +72,8 @@ bool DatabaseLMDB::commitTXN() {
     mdb_env_sync(m_env, 1);
     return true;
 }
+
+
 bool DatabaseLMDB::close() {
     mdb_close(m_env, m_dbi);
     mdb_env_close(m_env);

@@ -97,25 +97,6 @@ CDBWrapper::CDBWrapper(const std::string& path, size_t nCacheSize, bool fMemory,
         pdb->CompactRange(nullptr, nullptr);
         LogPrintf("Finished database compaction of %s\n", path.c_str()));
     }*/
-
-    // The base-case obfuscation key, which is a noop.
-    obfuscate_key = std::vector<unsigned char>(OBFUSCATE_KEY_NUM_BYTES, '\000');
-
-    bool key_exists = Read(OBFUSCATE_KEY_KEY, obfuscate_key);
-
-    if (!key_exists && obfuscate && IsEmpty()) {
-        // Initialize non-degenerate obfuscation if it won't upset
-        // existing, non-obfuscated data.
-        std::vector<unsigned char> new_key = CreateObfuscateKey();
-
-        // Write `new_key` so we don't obfuscate the key with itself
-        Write(OBFUSCATE_KEY_KEY, new_key);
-        obfuscate_key = new_key;
-
-        LogPrintf("Wrote new obfuscate key for %s\n", path.c_str());
-    }
-
-    LogPrintf("Using obfuscation key for %s\n", path.c_str());
 }
 
 CDBWrapper::~CDBWrapper()
@@ -158,26 +139,6 @@ size_t CDBWrapper::DynamicMemoryUsage() const {
     return stoul(memory);
 }
 
-// Prefixed with null character to avoid collisions with other keys
-//
-// We must use a string constructor which specifies length so that we copy
-// past the null-terminator.
-const std::string CDBWrapper::OBFUSCATE_KEY_KEY("\000obfuscate_key", 14);
-
-const unsigned int CDBWrapper::OBFUSCATE_KEY_NUM_BYTES = 8;
-
-/**
- * Returns a string (consisting of 8 random bytes) suitable for use as an
- * obfuscating XOR key.
- */
-std::vector<unsigned char> CDBWrapper::CreateObfuscateKey() const
-{
-    unsigned char buff[OBFUSCATE_KEY_NUM_BYTES];
-    //GetRandBytes(buff, OBFUSCATE_KEY_NUM_BYTES);
-    return std::vector<unsigned char>(&buff[0], &buff[OBFUSCATE_KEY_NUM_BYTES]);
-
-}
-
 bool CDBWrapper::IsEmpty()
 {
     std::unique_ptr<CDBIterator> it(NewIterator());
@@ -201,19 +162,16 @@ void HandleError(const leveldb::Status& status)
     throw dbwrapper_error(errmsg);
 }
 
-const std::vector<unsigned char>& GetObfuscateKey(const CDBWrapper &w)
-{
-    return w.obfuscate_key;
-}
-
 } // namespace dbwrapper_private
 
 DatabaseLEVELDB::DatabaseLEVELDB(const std::string& path) : db(path, 300*1024*1024, false, false, true) {
 
 }
 
-bool DatabaseLEVELDB::put(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
-    cache[std::vector<uint8_t>(key, key+key_len)] = std::vector<uint8_t>(value, value + value_len);
+bool DatabaseLEVELDB::put_txindex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+    std::vector<uint8_t> v_key(key, key+key_len);
+    v_key.insert(v_key.begin(), 'T');
+    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
     if (cache.size() == 100000) {
         CDBBatch batch(db);
         for (auto const& it : cache) {
@@ -225,16 +183,12 @@ bool DatabaseLEVELDB::put(const uint8_t* key, unsigned int key_len, const uint8_
     }
 }
 
+bool DatabaseLEVELDB::put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+    std::vector<uint8_t> v_key(key, key+key_len);
+    v_key.insert(v_key.begin(), 'H');
+    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
+}
+
 bool DatabaseLEVELDB::close() {
     return true;
 }
-
-bool DatabaseLEVELDB::beginTXN() {
-    return true;
-}
-
-bool DatabaseLEVELDB::commitTXN() {
-    return true;
-}
-
-

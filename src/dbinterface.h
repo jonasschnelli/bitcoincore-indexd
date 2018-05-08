@@ -16,10 +16,9 @@ class IndexDatabaseInterface
 public:
     virtual ~IndexDatabaseInterface() {}
 
-    virtual bool beginTXN() = 0;
-    virtual bool commitTXN() = 0;
     virtual bool close() = 0;
-    virtual bool put(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) = 0;
+    virtual bool put_txindex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) = 0;
+    virtual bool put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) = 0;
 };
 
 #endif // BITCOINCORE_INDEXD_DBINTERFACE_H
