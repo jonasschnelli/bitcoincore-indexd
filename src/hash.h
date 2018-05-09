@@ -1,5 +1,9 @@
-#ifndef HASH_H
-#define HASH_H
+// Copyright (c) 2018 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOINCORE_INDEXD_HASH_H
+#define BITCOINCORE_INDEXD_HASH_H
 
 #include <utils.h>
 #include <stdint.h>
@@ -25,4 +29,4 @@ public:
     friend inline bool operator<(const Hash256& a, const Hash256& b) { return a.Compare(b) < 0; }
 };
 
-#endif // HASH_H
+#endif // BITCOINCORE_INDEXD_HASH_H

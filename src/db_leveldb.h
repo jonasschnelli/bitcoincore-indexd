@@ -66,29 +66,10 @@ public:
     template <typename K, typename V>
     void Write(const K& key, const V& value)
     {
-        /*ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
-        ssKey << key;
-        */
         leveldb::Slice slKey((const char *)key.data(), key.size());
         leveldb::Slice slValue((const char *)value.data(), value.size());
         batch.Put(slKey, slValue);
-        /*
-        ssValue.reserve(DBWRAPPER_PREALLOC_VALUE_SIZE);
-        ssValue << value;
-        ssValue.Xor(dbwrapper_private::GetObfuscateKey(parent));
-        leveldb::Slice slValue(ssValue.data(), ssValue.size());
-
-        batch.Put(slKey, slValue);
-        // LevelDB serializes writes as:
-        // - byte: header
-        // - varint: key length (1 byte up to 127B, 2 bytes up to 16383B, ...)
-        // - byte[]: key
-        // - varint: value length
-        // - byte[]: value
-        // The formula below assumes the key and value are both less than 16k.
         size_estimate += 3 + (slKey.size() > 127) + slKey.size() + (slValue.size() > 127) + slValue.size();
-        ssKey.clear();
-        ssValue.clear();*/
     }
 
     template <typename K>
@@ -231,20 +212,16 @@ public:
     template <typename K>
     bool Exists(const K& key) const
     {
-        /*CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
-        ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
-
+        leveldb::Slice slKey((const char *)key.data(), key.size());
         std::string strValue;
         leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
+
         if (!status.ok()) {
             if (status.IsNotFound())
                 return false;
             LogPrintf("LevelDB read failure: %s\n", status.ToString());
             dbwrapper_private::HandleError(status);
         }
-        */
         return true;
     }
 

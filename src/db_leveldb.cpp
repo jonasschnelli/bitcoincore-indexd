@@ -238,6 +238,7 @@ bool DatabaseLEVELDB::putTxIndex(const uint8_t* key, unsigned int key_len, const
     std::vector<uint8_t> v_key(key, key+key_len);
     v_key.insert(v_key.begin(), DB_TXINDEX);
     cache[v_key] = std::vector<uint8_t>(value, value + value_len);
+    return true;
 }
 
 bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
@@ -255,6 +256,7 @@ bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, cons
         batch.Clear();
         cache.clear();
     }
+    return true;
 }
 
 bool DatabaseLEVELDB::lookupTXID(const uint8_t* key, unsigned int key_len, Hash256& blockhash) {
