@@ -73,7 +73,6 @@ void request_blocks(btc_node *node)
         }
         unsigned int block_key = 0;
         if (pnode->isIndexed(header->m_hash, &block_key)) {
-            LogPrintf("Block is already indexed: %s with index: %d\n", header->m_hash.GetHex(), block_key);
             continue;
         }
         //LogPrintf("Request block: %s\n", header->m_hash.GetHex());
@@ -235,7 +234,7 @@ BTCNodePriv::BTCNodePriv(BTCNode *node_in) : m_node(node_in) {
 }
 
 BTCNode::BTCNode(IndexDatabaseInterface *db_in) : db(db_in), priv(new BTCNodePriv(this)) {
-    db->loadBlockMap(m_intcounter_to_hash_map, auto_inc_counter);
+    db->loadBlockMap(m_intcounter_to_hash_map, m_hash_to_intcounter_map, auto_inc_counter);
 
     btc_node *node = btc_node_new();
     btc_node_set_ipport(node, "127.0.0.1:8333");

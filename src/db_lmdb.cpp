@@ -16,7 +16,7 @@ DatabaseLMDB::DatabaseLMDB(const std::string& path) {
     mdb_txn_abort(m_txn);
 }
 
-bool DatabaseLMDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, unsigned int &counter) {
+bool DatabaseLMDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, std::map<Hash256, unsigned int>& blockhash_map_rev, unsigned int &counter) {
 
 }
 

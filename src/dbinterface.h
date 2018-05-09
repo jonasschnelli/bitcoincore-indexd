@@ -20,7 +20,7 @@ public:
     virtual bool close() = 0;
 
     // loads the blockmap table (maps internal-blockhash-key to blockhash)
-    virtual bool loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, unsigned int &counter) = 0;
+    virtual bool loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, std::map<Hash256, unsigned int>& blockhash_map_rev, unsigned int &counter) = 0;
     virtual bool putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush = false) = 0;
     virtual bool putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) = 0;
 };

@@ -206,7 +206,7 @@ DatabaseLEVELDB::DatabaseLEVELDB(const std::string& path) : db(path, 300*1024*10
     }
 }
 
-bool DatabaseLEVELDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, unsigned int &counter) {
+bool DatabaseLEVELDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, std::map<Hash256, unsigned int>& blockhash_map_rev, unsigned int &counter) {
     std::unique_ptr<CDBIterator> pcursor(db.NewIterator());
     std::vector<uint8_t> v_key;
     v_key.push_back(DB_BLOCKMAP);
@@ -222,7 +222,7 @@ bool DatabaseLEVELDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_ma
             pcursor->GetValue(v_value);
 
             blockhash_map[blockmap_key] = Hash256(&v_value[0]);
-            LogPrintf("Key: %d Value: %s\n", blockmap_key, HexStrRev(v_value));
+            blockhash_map_rev[Hash256(&v_value[0])] = blockmap_key; //TODO: don't waste memory by holding the hash twice in mem
 
             pcursor->Next();
         }

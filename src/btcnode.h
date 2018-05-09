@@ -43,7 +43,7 @@ class BTCNode
 public:
     IndexDatabaseInterface *db;
     std::map<Hash256, HeaderEntry*> m_blocks_in_flight; //!< map that holds block that are requested
-    std::map<Hash256, HeaderEntry*> m_blocks; //!< map that holds all headers
+    std::map<Hash256, HeaderEntry*> m_blocks; //!< map that holds all headers //TODO: waste of memory, find a way to only hold the hash once im mem
     std::vector<HeaderEntry*> m_headers;
 
     std::map<unsigned int, Hash256> m_intcounter_to_hash_map; //<! maps internal blockmap-keys to blockhash
