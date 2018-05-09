@@ -33,10 +33,6 @@ BITCOINCORE_INDEXD_H = \
     tinyformat.h \
     utils.h
 
-DATABASE_LMDB_SOURCES = \
-    db_lmdb.h \
-    db_lmdb.cpp
-
 DATABASE_LEVELDB_SOURCES = \
     db_leveldb.h \
     db_leveldb.cpp
@@ -47,14 +43,13 @@ BITCOINCORE_INDEXD_SOURCES = \
     sync.cpp \
     utils.cpp \
     $(BITCOINCORE_INDEXD_H) \
-    $(DATABASE_LMDB_SOURCES) \
     $(DATABASE_LEVELDB_SOURCES)
 
 # application binary #
 bitcoincore_indexd_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir) $(UNIVALUE_CFLAGS) $(LIBUNIVALUE_CFLAGS) $(LIBBTC_CFLAGS) $(LEVELDB_CPPFLAGS)
 bitcoincore_indexd_CXXFLAGS = $(AM_CXXFLAGS)
 bitcoincore_indexd_SOURCES = $(BITCOINCORE_INDEXD_SOURCES)
-bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC) $(LMDB_LIBS) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV)
+bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV)
 bitcoincore_indexd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 bitcoincore_indexd_LIBTOOLFLAGS = --tag CXX
 

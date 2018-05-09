@@ -6,10 +6,7 @@
 
 #include <univalue.h>
 
-#include <lmdb.h>
-
 #include <btcnode.h>
-#include <db_lmdb.h>
 #include <db_leveldb.h>
 #include <utils.h>
 
@@ -22,9 +19,6 @@ int main(int argc, char* argv[])
     IndexDatabaseInterface *db = nullptr;
     if (g_args.GetArg("-database", DEFAULT_DB) == "leveldb") {
         db = new DatabaseLEVELDB(GetDataDir()+"/db_leveldb");
-    }
-    else if (g_args.GetArg("-database", DEFAULT_DB) == "lmdb") {
-        db = new DatabaseLMDB(GetDataDir()+"/db_lmdb");
     }
     else {
         LogPrintf("Database not supported");

@@ -720,14 +720,6 @@ if test x$use_reduce_exports = xyes; then
   [AC_MSG_ERROR([Cannot set default symbol visibility. Use --disable-reduce-exports.])])
 fi
 
-AC_CHECK_HEADER([lmdb.h],[
-  AC_CHECK_LIB([lmdb],  [mdb_env_create],[
-    LMDB_LIBS=-llmdb
-    found_lmdb=yes
-  ],[true])
-],[true])
-AC_SUBST(LMDB_LIBS)
-
 BITCOIN_QT_INIT
 
 dnl sets $bitcoin_enable_qt, $bitcoin_enable_qt_test, $bitcoin_enable_qt_dbus
