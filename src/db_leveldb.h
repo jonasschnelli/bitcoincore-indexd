@@ -132,36 +132,22 @@ public:
     void SeekToFirst();
 
     template<typename K> void Seek(const K& key) {
-        /*CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
-        ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
-        piter->Seek(slKey);*/
+        leveldb::Slice slKey((const char *)key.data(), key.size());
+        piter->Seek(slKey);
     }
 
     void Next();
 
     template<typename K> bool GetKey(K& key) {
         leveldb::Slice slKey = piter->key();
-        /*
-        try {
-            CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
-            ssKey >> key;
-        } catch (const std::exception&) {
-            return false;
-        }
-        */
+        key.assign(slKey.data(), slKey.data() + slKey.size());
         return true;
     }
 
     template<typename V> bool GetValue(V& value) {
         leveldb::Slice slValue = piter->value();
         try {
-            /*
-            CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-            ssValue.Xor(dbwrapper_private::GetObfuscateKey(parent));
-            ssValue >> value;
-            */
+            value.assign(slValue.data(), slValue.data() + slValue.size());
         } catch (const std::exception&) {
             return false;
         }
@@ -352,8 +338,9 @@ public:
     DatabaseLEVELDB(const std::string& path);
 
     bool open(const std::string& path);
-    bool put_txindex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
-    bool put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
+    bool loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, unsigned int &counter);
+    bool putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush);
+    bool putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
     bool close();
 };
 

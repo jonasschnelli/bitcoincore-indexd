@@ -16,12 +16,16 @@ DatabaseLMDB::DatabaseLMDB(const std::string& path) {
     mdb_txn_abort(m_txn);
 }
 
+bool DatabaseLMDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, unsigned int &counter) {
+
+}
+
 bool DatabaseLMDB::beginTXN() {
     int rc = mdb_txn_begin(m_env, NULL, 0, &m_txn);
     return true;
 }
 
-bool DatabaseLMDB::put_txindex(const uint8_t* key_in, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+bool DatabaseLMDB::putTxIndex(const uint8_t* key_in, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush) {
     MDB_val key, data, data_r;
     key.mv_size = key_len;
     key.mv_data = (void *)key_in;
@@ -56,7 +60,7 @@ bool DatabaseLMDB::put_txindex(const uint8_t* key_in, unsigned int key_len, cons
     return true;
 }
 
-bool DatabaseLMDB::put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+bool DatabaseLMDB::putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
     return true;
 }
 

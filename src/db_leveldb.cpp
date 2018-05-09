@@ -4,6 +4,7 @@
 
 #include <db_leveldb.h>
 
+#include <hash.h>
 #include <utils.h>
 
 #include <memory>
@@ -15,6 +16,11 @@
 #include <stdint.h>
 #include <algorithm>
 
+#include <btc/buffer.h>
+#include <btc/serialize.h>
+
+const static char DB_BLOCKMAP = 'B';
+const static char DB_TXINDEX  = 'T';
 class CBitcoinLevelDBLogger : public leveldb::Logger {
 public:
     // This code is adapted from posix_logger.h, which is why it is using vsprintf.
@@ -166,13 +172,80 @@ void HandleError(const leveldb::Status& status)
 
 DatabaseLEVELDB::DatabaseLEVELDB(const std::string& path) : db(path, 300*1024*1024, false, false, true) {
 
+    if (g_args.GetBoolArg("-dumpdb", false)) {
+        std::unique_ptr<CDBIterator> pcursor(db.NewIterator());
+        std::vector<uint8_t> v_key;
+        pcursor->SeekToFirst();
+        unsigned int cnt = 0;
+        while (pcursor->Valid()) {
+            std::vector<uint8_t> v_key;
+            std::vector<uint8_t> v_value;
+            if (pcursor->GetKey(v_key)) {
+                pcursor->GetValue(v_value);
+                if (v_key[0] == DB_BLOCKMAP) {
+                    struct const_buffer buf = {&v_key[1], 4};
+                    unsigned int blockmap_key = 0;
+                    deser_u32(&blockmap_key, &buf);
+                    LogPrintf("Blockmap %s to %d\n", HexStrRev(v_value), blockmap_key);
+                }
+                else if (v_key[0] == DB_TXINDEX) {
+                    struct const_buffer buf = {&v_value[0], 4};
+                    unsigned int blockmap_key = 0;
+                    deser_u32(&blockmap_key, &buf);
+                    v_key.erase(v_key.begin());
+                    LogPrintf("TX index %s to %d\n", HexStrRev(v_key), blockmap_key);
+                }
+                pcursor->Next();
+            }
+            else {
+                break;
+            }
+            cnt++;
+        }
+        exit(1);
+    }
 }
 
-bool DatabaseLEVELDB::put_txindex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+bool DatabaseLEVELDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, unsigned int &counter) {
+    std::unique_ptr<CDBIterator> pcursor(db.NewIterator());
+    std::vector<uint8_t> v_key;
+    v_key.push_back(DB_BLOCKMAP);
+    pcursor->Seek(v_key);
+    while (pcursor->Valid()) {
+        std::vector<uint8_t> v_key;
+        std::vector<uint8_t> v_value;
+        if (pcursor->GetKey(v_key) && v_key[0] == DB_BLOCKMAP) {
+            struct const_buffer buf = {&v_key[1], 4};
+            unsigned int blockmap_key = 0;
+            deser_u32(&blockmap_key, &buf);
+            if (blockmap_key > counter) counter = blockmap_key;
+            pcursor->GetValue(v_value);
+
+            blockhash_map[blockmap_key] = Hash256(&v_value[0]);
+            LogPrintf("Key: %d Value: %s\n", blockmap_key, HexStrRev(v_value));
+
+            pcursor->Next();
+        }
+        else {
+            break;
+        }
+    }
+    return true;
+}
+
+bool DatabaseLEVELDB::putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush) {
     std::vector<uint8_t> v_key(key, key+key_len);
-    v_key.insert(v_key.begin(), 'T');
+    v_key.insert(v_key.begin(), DB_TXINDEX);
     cache[v_key] = std::vector<uint8_t>(value, value + value_len);
-    if (cache.size() == 100000) {
+}
+
+bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+    std::vector<uint8_t> v_key(key, key+key_len);
+    v_key.insert(v_key.begin(), DB_BLOCKMAP);
+    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
+
+    // write the batch when we have reached the desired cache size
+    if (cache.size() >= 100000) {
         CDBBatch batch(db);
         for (auto const& it : cache) {
             batch.Write(it.first, it.second);
@@ -181,12 +254,6 @@ bool DatabaseLEVELDB::put_txindex(const uint8_t* key, unsigned int key_len, cons
         batch.Clear();
         cache.clear();
     }
-}
-
-bool DatabaseLEVELDB::put_header(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
-    std::vector<uint8_t> v_key(key, key+key_len);
-    v_key.insert(v_key.begin(), 'H');
-    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
 }
 
 bool DatabaseLEVELDB::close() {

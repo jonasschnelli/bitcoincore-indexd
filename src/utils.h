@@ -57,6 +57,12 @@ inline std::string HexStr(const T& vch, bool fSpaces=false)
     return HexStr(vch.begin(), vch.end(), fSpaces);
 }
 
+template<typename T>
+inline std::string HexStrRev(const T& vch, bool fSpaces=false)
+{
+    return HexStr(std::reverse_iterator<const uint8_t*>(&vch[vch.size()]), std::reverse_iterator<const uint8_t*>(&vch[0]));
+}
+
 int64_t GetTimeMillis();
 
 class ArgsManager

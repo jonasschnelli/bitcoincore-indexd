@@ -5,40 +5,34 @@
 #include <map>
 #include <string.h>
 
+#include <hash.h>
 #include <utils.h>
 
 #include <dbinterface.h>
 
-class Hash256 {
-public:
-    uint8_t m_data[32];
-    Hash256(uint8_t *t) {
-        memcpy(m_data, t, 32);
-    }
-    inline std::string GetHex() const
-    {
-        return HexStr(std::reverse_iterator<const uint8_t*>(m_data + sizeof(m_data)), std::reverse_iterator<const uint8_t*>(m_data));
-    }
-    inline int Compare(const Hash256& other) const { return memcmp(m_data, other.m_data, sizeof(m_data)); }
-    friend inline bool operator==(const Hash256& a, const Hash256& b) { return a.Compare(b) == 0; }
-    friend inline bool operator!=(const Hash256& a, const Hash256& b) { return a.Compare(b) != 0; }
-    friend inline bool operator<(const Hash256& a, const Hash256& b) { return a.Compare(b) < 0; }
+
+enum BLOCK_STATE {
+    BLOCK_STATE_REQUESTED = (1 << 0),
+    BLOCK_STATE_INDEXED = (1 << 1),
 };
 
 class HeaderEntry {
 public:
     const Hash256 m_hash;
     uint8_t m_flags;
-    unsigned int m_height;
-    HeaderEntry(uint8_t *t, unsigned int height) : m_hash(Hash256(t)), m_flags(0), m_height(height) {}
+    const unsigned int m_primkey; //!< primary key auto-increment, use this for txid->block to save diskspace
+    HeaderEntry(uint8_t *t, unsigned int height) : m_hash(Hash256(t)), m_flags(0), m_primkey(height) {}
     void setRequested() {
-        m_flags = 1;
+        m_flags |= BLOCK_STATE_REQUESTED;
     }
     bool isRequested() const {
-        return (m_flags > 0);
+        return ((m_flags & BLOCK_STATE_REQUESTED) == BLOCK_STATE_REQUESTED);
     }
-    void setLoaded() {
-        m_flags = 2;
+    void setIndexed() {
+        m_flags |= BLOCK_STATE_INDEXED;
+    }
+    bool isIndexed() {
+        return ((m_flags & BLOCK_STATE_INDEXED) == BLOCK_STATE_INDEXED);
     }
 };
 
@@ -47,13 +41,15 @@ class BTCNodePriv;
 class BTCNode
 {
 public:
-    int m_txnsize;
     IndexDatabaseInterface *db;
-    HeaderEntry* bestblock;
-    std::map<Hash256, HeaderEntry*> m_blocks_in_flight;
-    std::map<Hash256, HeaderEntry*> m_blocks;
-    int processed_up_to_height;
+    std::map<Hash256, HeaderEntry*> m_blocks_in_flight; //!< map that holds block that are requested
+    std::map<Hash256, HeaderEntry*> m_blocks; //!< map that holds all headers
     std::vector<HeaderEntry*> m_headers;
+
+    std::map<unsigned int, Hash256> m_intcounter_to_hash_map; //<! maps internal blockmap-keys to blockhash
+    std::map<Hash256, unsigned int> m_hash_to_intcounter_map; //<! maps blockhash to internal blockmap-key
+
+    unsigned int auto_inc_counter = 0; // the auto incremental blockmap-key index
 
     BTCNode(IndexDatabaseInterface *db_in);
     void SyncHeaders();
@@ -61,7 +57,10 @@ public:
     bool AddHeader(uint8_t* t, uint8_t* prevhash);
     unsigned int GetHeight() { return m_headers.size(); }
     const uint8_t * GetRawBestBlockHash() { return m_headers.back()->m_hash.m_data; }
-    void processTXID(const Hash256& block_hash, const Hash256& tx_hash);
+    void processTXID(void *key, uint8_t key_len, const Hash256& tx, bool avoid_flush);
+    unsigned int addBlockToMap(const Hash256& hash);
+    void persistBlockKey(void *block_prim_key, uint8_t block_prim_key_len, const Hash256& blockhash);
+    bool isIndexed(const Hash256& hash, unsigned int *block_prim_key = nullptr);
     BTCNodePriv *priv;
 };
 

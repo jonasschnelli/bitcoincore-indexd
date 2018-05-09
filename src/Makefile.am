@@ -27,6 +27,7 @@ bin_PROGRAMS = bitcoincore-indexd
 BITCOINCORE_INDEXD_H = \
     btcnode.h \
     dbinterface.h \
+    hash.h \
     sync.h \
     threadsafety.h \
     tinyformat.h \
