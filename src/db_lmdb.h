@@ -25,6 +25,7 @@ public:
     bool loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, std::map<Hash256, unsigned int>& blockhash_map_rev, unsigned int &counter);
     bool putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush);
     bool putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
+    bool lookupTXID(const uint8_t* key, unsigned int key_len, Hash256& blockhash);
     bool close();
 };
 

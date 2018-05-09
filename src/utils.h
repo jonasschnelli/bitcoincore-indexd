@@ -63,6 +63,9 @@ inline std::string HexStrRev(const T& vch, bool fSpaces=false)
     return HexStr(std::reverse_iterator<const uint8_t*>(&vch[vch.size()]), std::reverse_iterator<const uint8_t*>(&vch[0]));
 }
 
+std::vector<unsigned char> ParseHex(const char* psz);
+std::vector<unsigned char> ParseHex(const std::string& str);
+
 int64_t GetTimeMillis();
 
 class ArgsManager

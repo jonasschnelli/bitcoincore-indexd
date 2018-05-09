@@ -203,11 +203,7 @@ public:
     template <typename K, typename V>
     bool Read(const K& key, V& value) const
     {
-        /*CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
-        ssKey << key;
-        leveldb::Slice slKey(ssKey.data(), ssKey.size());
-
+        leveldb::Slice slKey((const char *)key.data(), key.size());
         std::string strValue;
         leveldb::Status status = pdb->Get(readoptions, slKey, &strValue);
         if (!status.ok()) {
@@ -217,13 +213,10 @@ public:
             dbwrapper_private::HandleError(status);
         }
         try {
-            CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
-            ssValue.Xor(obfuscate_key);
-            ssValue >> value;
+            value.assign(strValue.data(), strValue.data() + strValue.size());
         } catch (const std::exception&) {
             return false;
         }
-        */
         return true;
     }
 
@@ -341,6 +334,7 @@ public:
     bool loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, std::map<Hash256, unsigned int>& blockhash_map_rev, unsigned int &counter);
     bool putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush);
     bool putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len);
+    bool lookupTXID(const uint8_t* key, unsigned int key_len, Hash256& blockhash);
     bool close();
 };
 

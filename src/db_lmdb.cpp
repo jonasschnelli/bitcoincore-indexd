@@ -78,6 +78,10 @@ bool DatabaseLMDB::commitTXN() {
 }
 
 
+bool DatabaseLMDB::lookupTXID(const uint8_t* key, unsigned int key_len, Hash256& blockhash) {
+    return false;
+}
+
 bool DatabaseLMDB::close() {
     mdb_close(m_env, m_dbi);
     mdb_env_close(m_env);

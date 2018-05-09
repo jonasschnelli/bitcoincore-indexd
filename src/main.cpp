@@ -8,9 +8,10 @@
 
 #include <lmdb.h>
 
+#include <btcnode.h>
 #include <db_lmdb.h>
 #include <db_leveldb.h>
-#include <btcnode.h>
+#include <utils.h>
 
 static std::string DEFAULT_DB = "leveldb";
 int main(int argc, char* argv[])
@@ -29,8 +30,25 @@ int main(int argc, char* argv[])
         LogPrintf("Database not supported");
         exit(1);
     }
-    BTCNode node(db);
-    node.SyncHeaders();
-    node.SyncBlocks();
-    db->close();
+    if (g_args.GetArg("-lookup", "") != "") {
+        std::vector<unsigned char> data = ParseHex(g_args.GetArg("-lookup", ""));
+        if (data.size() != 32) {
+            LogPrintf("invalid hash\n");
+            exit(1);
+        }
+        std::reverse(data.begin(), data.end());
+        Hash256 hash;
+        if (db->lookupTXID(&data[0], 32, hash)) {
+            LogPrintf("blockhash: %s\n", hash.GetHex());
+        }
+        else {
+            LogPrintf("Not found\n");
+        }
+    }
+    else {
+        BTCNode node(db);
+        node.SyncHeaders();
+        node.SyncBlocks();
+        db->close();
+    }
 }

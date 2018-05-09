@@ -7,6 +7,7 @@
 #include <hash.h>
 #include <utils.h>
 
+#include <assert.h>
 #include <memory>
 
 #include <leveldb/cache.h>
@@ -254,6 +255,23 @@ bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, cons
         batch.Clear();
         cache.clear();
     }
+}
+
+bool DatabaseLEVELDB::lookupTXID(const uint8_t* key, unsigned int key_len, Hash256& blockhash) {
+    std::vector<uint8_t> v_key(key, key+key_len);
+    std::vector<uint8_t> v_value;
+    v_key.insert(v_key.begin(), DB_TXINDEX);
+    if (db.Read(v_key, v_value)) {
+        assert(v_value.size() == 4);
+        v_value.insert(v_value.begin(), DB_BLOCKMAP);
+        std::vector<uint8_t> v_value_hash;
+        if (db.Read(v_value, v_value_hash)) {
+            assert(v_value_hash.size() == 32);
+            blockhash = Hash256(&v_value_hash[0]);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool DatabaseLEVELDB::close() {
