@@ -292,7 +292,7 @@ void handshake_done(struct btc_node_ *node)
 
 BTCNodePriv::BTCNodePriv(BTCNode *node_in) : m_node(node_in) {
     syncblocks = false;
-    m_group = btc_node_group_new(&btc_chainparams_regtest);
+    m_group = btc_node_group_new(NULL);
     m_group->desired_amount_connected_nodes = 1;
 
     if (g_args.GetBoolArg("-netdebug", false)) {
@@ -317,7 +317,7 @@ BTCNode::BTCNode(IndexDatabaseInterface *db_in) : db(db_in), priv(new BTCNodePri
     db->loadBlockMap(m_intcounter_to_hash_map, m_hash_to_intcounter_map, auto_inc_counter);
 
     btc_node *node = btc_node_new();
-    btc_node_set_ipport(node, "127.0.0.1:18444");
+    btc_node_set_ipport(node, "127.0.0.1:8333");
     btc_node_group_add_node(priv->m_group, node);
 }
 
