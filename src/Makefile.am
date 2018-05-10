@@ -28,6 +28,7 @@ BITCOINCORE_INDEXD_H = \
     btcnode.h \
     dbinterface.h \
     hash.h \
+    shutdown.h \
     sync.h \
     threadsafety.h \
     tinyformat.h \
@@ -40,6 +41,7 @@ DATABASE_LEVELDB_SOURCES = \
 BITCOINCORE_INDEXD_SOURCES = \
     btcnode.cpp \
     main.cpp \
+    shutdown.cpp \
     sync.cpp \
     utils.cpp \
     $(BITCOINCORE_INDEXD_H) \

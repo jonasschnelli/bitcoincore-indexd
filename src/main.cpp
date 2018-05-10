@@ -4,9 +4,31 @@
 
 #include <btcnode.h>
 #include <db_leveldb.h>
+#include <shutdown.h>
 #include <utils.h>
 
+#ifndef WIN32
+#include <signal.h>
+#endif
+
 static std::string DEFAULT_DB = "leveldb";
+
+#ifndef WIN32
+static void registerSignalHandler(int signal, void(*handler)(int))
+{
+    struct sigaction sa;
+    sa.sa_handler = handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(signal, &sa, nullptr);
+}
+#endif
+
+static void HandleSIGTERM(int)
+{
+    requestShutdown();
+}
+
 int main(int argc, char* argv[])
 {
     // parse arguments
@@ -14,6 +36,15 @@ int main(int argc, char* argv[])
 
     // create datadir if required
     CreateDir(GetDataDir());
+
+#ifndef WIN32
+    // Clean shutdown on SIGTERM
+    registerSignalHandler(SIGTERM, HandleSIGTERM);
+    registerSignalHandler(SIGINT, HandleSIGTERM);
+
+    // Ignore SIGPIPE, otherwise it will bring the daemon down if the client closes unexpectedly
+    signal(SIGPIPE, SIG_IGN);
+#endif
 
     // flexible database interface
     IndexDatabaseInterface *db = nullptr;

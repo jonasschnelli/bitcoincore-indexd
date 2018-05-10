@@ -6,6 +6,7 @@
 #include <btc/tx.h>
 #include <btc/utils.h>
 
+#include <shutdown.h>
 #include <utils.h>
 
 class BTCNodePriv
@@ -83,6 +84,14 @@ void request_blocks(btc_node *node)
         if (++cnt == MAX_BLOCKS_TO_REQUEST) break;
     }
 
+    if (pnode->m_blocks_in_flight.size() == 0) {
+        // if we have indexed all blocks, force flush database
+        pnode->db->flush(true);
+
+        // disconnect and quit sync
+        btc_node_disconnect(node);
+    }
+
     // now add the inv counter in a reverse mode
     cstring* inv_msg_cstr_comp = cstr_new_sz(100+MAX_BLOCKS_TO_REQUEST*(4+32));
     ser_varlen(inv_msg_cstr_comp, cnt);
@@ -101,10 +110,31 @@ void request_blocks(btc_node *node)
     cstr_free(p2p_msg, true);
 }
 
+void check_shutdown(btc_node *node)
+{
+    if (isShutdownRequested()) {
+        BTCNode *pnode = (BTCNode *)node->nodegroup->ctx;
+        LogPrintf("Shutdown requested\n");
+        if (pnode->db->flush()) {
+            // only allow shutdown here if we can flush the state
+            LogPrintf("DB flush state acceptable (no data to flush or everything flushed)\n");
+            btc_node_disconnect(node);
+
+        }
+    }
+}
+
+static btc_bool btc_timer_callback(btc_node *node, uint64_t *now)
+{
+    check_shutdown(node);
+    return true;
+}
+
 void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *buf)
 {
     BTCNode *pnode = (BTCNode *)node->nodegroup->ctx;
 
+    check_shutdown(node);
     if (strcmp(hdr->command, BTC_MSG_BLOCK) == 0)
     {
         btc_block_header header;
@@ -147,8 +177,15 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
 
             pnode->persistBlockKey(blockprimkey->str,blockprimkey->len, blockhash);
             pheader->setIndexed();
-            LogPrintf("Block with index %d processes (%s)\n", primkey, blockhash.GetHex());
+            if (primkey % 100 == 0) LogPrintf("Indexing complete of block %s (idx:%d)\n", blockhash.GetHex(), primkey);
             cstr_free(blockprimkey, true);
+
+            // allow to shutdown at this point since the batch can be written here
+            if (isShutdownRequested()) {
+                pnode->db->flush(true);
+                btc_node_disconnect(node);
+            }
+
             pnode->m_blocks_in_flight.erase(it);
             if (pnode->m_blocks_in_flight.size() == 0) {
                 request_blocks(node);
@@ -222,12 +259,16 @@ BTCNodePriv::BTCNodePriv(BTCNode *node_in) : m_node(node_in) {
     if (g_args.GetBoolArg("-netdebug", false)) {
         m_group->log_write_cb = net_write_log_printf;
     }
+
+    // make the c++ m_node instance available from all callbacks (via flexible ctx pointer)
+    m_group->ctx = m_node;
+
+    // wire libbtc node callback functions (based on libevent)
     m_group->parse_cmd_cb = parse_cmd;
     m_group->postcmd_cb = postcmd;
     m_group->node_connection_state_changed_cb = node_connection_state_changed;
     m_group->handshake_done_cb = handshake_done;
-
-    m_group->ctx = m_node;
+    m_group->periodic_timer_cb = btc_timer_callback; //connect function pointer for periodic shutdown checks
 
     // push in genesis hash
     m_node->AddHeader((uint8_t*)&m_group->chainparams->genesisblockhash, NULL);

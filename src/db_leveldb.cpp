@@ -22,6 +22,7 @@
 
 const static char DB_BLOCKMAP = 'B';
 const static char DB_TXINDEX  = 'T';
+const static int DEFAULT_DB_CACHE = 300 * 1024 * 1024; //300MB
 class CBitcoinLevelDBLogger : public leveldb::Logger {
 public:
     // This code is adapted from posix_logger.h, which is why it is using vsprintf.
@@ -235,20 +236,11 @@ bool DatabaseLEVELDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_ma
     return true;
 }
 
-bool DatabaseLEVELDB::putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush) {
-    std::vector<uint8_t> v_key(key, key+key_len);
-    v_key.insert(v_key.begin(), DB_TXINDEX);
-    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
-    return true;
-}
 
-bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
-    std::vector<uint8_t> v_key(key, key+key_len);
-    v_key.insert(v_key.begin(), DB_BLOCKMAP);
-    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
-
-    // write the batch when we have reached the desired cache size
-    if (cache.size() >= 100000) {
+bool DatabaseLEVELDB::flush(bool force) {
+    if (cache.size() == 0) return true;
+    if (m_size_estimate >= g_args.GetArg("-dbcache", DEFAULT_DB_CACHE) || force) {
+        // write the batch when we have reached the desired cache size
         CDBBatch batch(db);
         for (auto const& it : cache) {
             batch.Write(it.first, it.second);
@@ -256,7 +248,28 @@ bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, cons
         db.WriteBatch(batch);
         batch.Clear();
         cache.clear();
+        return true;
     }
+    return false;
+}
+
+bool DatabaseLEVELDB::putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush) {
+    std::vector<uint8_t> v_key(key, key+key_len);
+    v_key.insert(v_key.begin(), DB_TXINDEX);
+    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
+    m_size_estimate += 3 + (key_len+1 > 127) + key_len+1 + (value_len > 127) + value_len;
+    // don't flush at this stage since we want to flush the index data only together with the blockhash-map-key
+    return true;
+}
+
+bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) {
+    std::vector<uint8_t> v_key(key, key+key_len);
+    v_key.insert(v_key.begin(), DB_BLOCKMAP);
+    cache[v_key] = std::vector<uint8_t>(value, value + value_len);
+    m_size_estimate += 3 + (key_len+1 > 127) + key_len+1 + (value_len > 127) + value_len;
+
+    // eventually flush (if cache size is exceeded)
+    flush();
     return true;
 }
 
@@ -264,6 +277,9 @@ bool DatabaseLEVELDB::lookupTXID(const uint8_t* key, unsigned int key_len, Hash2
     std::vector<uint8_t> v_key(key, key+key_len);
     std::vector<uint8_t> v_value;
     v_key.insert(v_key.begin(), DB_TXINDEX);
+
+    //TOOD: loopup the key in the cache which may not be flused to leveldb
+
     if (db.Read(v_key, v_value)) {
         assert(v_value.size() == 4);
         v_value.insert(v_value.begin(), DB_BLOCKMAP);

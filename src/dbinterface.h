@@ -24,6 +24,7 @@ public:
     virtual bool putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush = false) = 0;
     virtual bool putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) = 0;
     virtual bool lookupTXID(const uint8_t* key, unsigned int key_len, Hash256& blockhash) = 0;
+    virtual bool flush(bool force = false) = 0;
 };
 
 #endif // BITCOINCORE_INDEXD_DBINTERFACE_H

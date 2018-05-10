@@ -260,24 +260,6 @@ public:
      */
     bool IsEmpty();
 
-    template<typename K>
-    size_t EstimateSize(const K& key_begin, const K& key_end) const
-    {
-        /*CDataStream ssKey1(SER_DISK, CLIENT_VERSION), ssKey2(SER_DISK, CLIENT_VERSION);
-        ssKey1.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
-        ssKey2.reserve(DBWRAPPER_PREALLOC_KEY_SIZE);
-        ssKey1 << key_begin;
-        ssKey2 << key_end;
-        leveldb::Slice slKey1(ssKey1.data(), ssKey1.size());
-        leveldb::Slice slKey2(ssKey2.data(), ssKey2.size());
-        uint64_t size = 0;
-        leveldb::Range range(slKey1, slKey2);
-        pdb->GetApproximateSizes(&range, 1, &size);
-
-        return size;
-        */
-    }
-
     /**
      * Compact a certain range of keys in the database.
      */
@@ -302,11 +284,13 @@ public:
 class DatabaseLEVELDB : public IndexDatabaseInterface
 {
 private:
+    size_t m_size_estimate = 0;
     CDBWrapper db;
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> cache;
 public:
     DatabaseLEVELDB(const std::string& path);
 
+    bool flush(bool force = false);
     bool open(const std::string& path);
     bool loadBlockMap(std::map<unsigned int, Hash256>& blockhash_map, std::map<Hash256, unsigned int>& blockhash_map_rev, unsigned int &counter);
     bool putTxIndex(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len, bool avoid_flush);
