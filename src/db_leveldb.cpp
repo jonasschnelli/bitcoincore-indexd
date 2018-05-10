@@ -248,6 +248,7 @@ bool DatabaseLEVELDB::flush(bool force) {
         db.WriteBatch(batch);
         batch.Clear();
         cache.clear();
+        m_size_estimate = 0;
         return true;
     }
     return false;
