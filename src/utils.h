@@ -184,6 +184,7 @@ extern ArgsManager g_args;
 
 std::string itostr(int n);
 
+bool isDir(const std::string& path);
 void CreateDir(const std::string& path);
 std::string GetDataDir();
 

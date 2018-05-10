@@ -35,6 +35,11 @@ int main(int argc, char* argv[])
     g_args.ParseParameters(argc, argv);
 
     // create datadir if required
+    if (!isDir(GetDataDir()))
+    {
+        fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", g_args.GetArg("-datadir", "").c_str());
+        exit(1);
+    }
     CreateDir(GetDataDir());
 
 #ifndef WIN32

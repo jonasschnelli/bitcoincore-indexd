@@ -356,8 +356,25 @@ void CreateDir(const std::string& path)
 #endif
 }
 
+bool isDir(const std::string& path) {
+    struct stat s;
+    if (stat(path.c_str(),&s) == 0 && s.st_mode & S_IFDIR) return true;
+    return false;
+}
+
 std::string GetDataDir()
 {
+    if (g_args.IsArgSet("-datadir")) {
+        std::string path = g_args.GetArg("-datadir", "");
+        if (isDir(path)) {
+            return path;
+        }
+        else {
+            return "";
+        }
+    }
+    // use default data dir
+
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\Bitcoin
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\Bitcoin
     // Mac: ~/Library/Application Support/Bitcoin
