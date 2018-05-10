@@ -966,8 +966,7 @@ fi
 
 LIBBTC_CFLAGS='-I$(srcdir)/libbtc/include'
 AC_SUBST(LIBBTC_CFLAGS)
-  
-ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni"
+
 AC_CONFIG_SUBDIRS([src/libbtc])
 
 AC_OUTPUT
