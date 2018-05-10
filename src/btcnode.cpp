@@ -85,6 +85,7 @@ void request_blocks(btc_node *node)
     }
 
     if (pnode->m_blocks_in_flight.size() == 0) {
+        LogPrintf("All blocks have been indexed\n");
         // if we have indexed all blocks, force flush database
         pnode->db->flush(true);
 
@@ -228,9 +229,6 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
         else
         {
             request_blocks(node);
-            //btc_node_disconnect(node);
-            /* headers download seems to be completed */
-            /* we should have switched to block request if the oldest_item_of_interest was set correctly */
         }
     }
 }
