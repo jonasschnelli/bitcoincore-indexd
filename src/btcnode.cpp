@@ -91,7 +91,7 @@ void request_blocks(btc_node *node)
         // if we have indexed all blocks, force flush database
         pnode->db->flush(true);
 
-        if (!g_args.GetArg("-waitforblocks", DEFAULT_WAIT_FOR_BLOCKS)) {
+        if (!g_args.GetBoolArg("-waitforblocks", DEFAULT_WAIT_FOR_BLOCKS)) {
             // disconnect and quit sync
             btc_node_disconnect(node);
         }
