@@ -19,6 +19,9 @@ If you connect via the internet, make sure you connect via a secure channel.
 * The indexer currently works only with leveldb (there was a LMDB implementation, check git history).
 * In order to save space, each block will get an internal blockmap-key (uint32 / 4bytes). That internal blockmap-key must not be confused with the height. The blockmap-key may be different on other systems/instances.
 
+#### Space requirements
+* ~14.3GB up to block 522081 (May 10th 2018)
+
 #### Lookups
 * WIP: right now, you can lookup a txid via -lookup=<txid>
 

@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    // internal lookup (not ideal since its only possible during startup == always load the DB
-    // todo: move to REST lookup via HTTP
+    // internal lookup (not ideal since it's only possible during startup == always load the DB
+    // TODO: move to REST lookup via HTTP
     if (g_args.GetArg("-lookup", "") != "") {
         std::vector<unsigned char> data = ParseHex(g_args.GetArg("-lookup", ""));
         if (data.size() != 32) {

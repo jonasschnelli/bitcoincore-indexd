@@ -13,8 +13,8 @@
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 
-static const size_t DBWRAPPER_PREALLOC_KEY_SIZE = 64;
-static const size_t DBWRAPPER_PREALLOC_VALUE_SIZE = 1024;
+//static const size_t DBWRAPPER_PREALLOC_KEY_SIZE = 64;
+//static const size_t DBWRAPPER_PREALLOC_VALUE_SIZE = 1024;
 
 class dbwrapper_error : public std::runtime_error
 {
@@ -284,9 +284,9 @@ public:
 class DatabaseLEVELDB : public IndexDatabaseInterface
 {
 private:
-    size_t m_size_estimate = 0;
-    CDBWrapper db;
+    size_t m_size_estimate = 0; //keeps track of the size of the unflushed cached
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> cache;
+    CDBWrapper db;
 public:
     DatabaseLEVELDB(const std::string& path);
 

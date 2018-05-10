@@ -239,7 +239,7 @@ bool DatabaseLEVELDB::loadBlockMap(std::map<unsigned int, Hash256>& blockhash_ma
 
 bool DatabaseLEVELDB::flush(bool force) {
     if (cache.size() == 0) return true;
-    if (m_size_estimate >= g_args.GetArg("-dbcache", DEFAULT_DB_CACHE) || force) {
+    if (m_size_estimate >= (size_t)g_args.GetArg("-dbcache", DEFAULT_DB_CACHE) || force) {
         // write the batch when we have reached the desired cache size
         CDBBatch batch(db);
         for (auto const& it : cache) {
@@ -277,7 +277,6 @@ bool DatabaseLEVELDB::lookupTXID(const uint8_t* key, unsigned int key_len, Hash2
     v_key.insert(v_key.begin(), DB_TXINDEX);
 
     //TOOD: loopup the key in the cache which may not be flused to leveldb
-
     if (db.Read(v_key, v_value)) {
         assert(v_value.size() == 4);
         v_value.insert(v_value.begin(), DB_BLOCKMAP);
