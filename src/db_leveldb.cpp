@@ -267,9 +267,6 @@ bool DatabaseLEVELDB::putBlockMap(const uint8_t* key, unsigned int key_len, cons
     v_key.insert(v_key.begin(), DB_BLOCKMAP);
     cache[v_key] = std::vector<uint8_t>(value, value + value_len);
     m_size_estimate += 3 + (key_len+1 > 127) + key_len+1 + (value_len > 127) + value_len;
-
-    // eventually flush (if cache size is exceeded)
-    flush();
     return true;
 }
 

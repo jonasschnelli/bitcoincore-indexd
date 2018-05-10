@@ -41,6 +41,7 @@ class BTCNodePriv;
 class BTCNode
 {
 public:
+    bool blockflush = false; //lazy mode for DB transactions, make sure we only write complete indexing packages
     IndexDatabaseInterface *db;
     std::map<Hash256, HeaderEntry*> m_blocks_in_flight; //!< map that holds block that are requested
     std::map<Hash256, HeaderEntry*> m_blocks; //!< map that holds all headers //TODO: waste of memory, find a way to only hold the hash once im mem

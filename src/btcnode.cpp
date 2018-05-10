@@ -9,6 +9,8 @@
 #include <shutdown.h>
 #include <utils.h>
 
+const static bool DEFAULT_WAIT_FOR_BLOCKS = true;
+
 class BTCNodePriv
 {
 public:
@@ -89,8 +91,13 @@ void request_blocks(btc_node *node)
         // if we have indexed all blocks, force flush database
         pnode->db->flush(true);
 
-        // disconnect and quit sync
-        btc_node_disconnect(node);
+        if (!g_args.GetArg("-waitforblocks", DEFAULT_WAIT_FOR_BLOCKS)) {
+            // disconnect and quit sync
+            btc_node_disconnect(node);
+        }
+        else {
+            LogPrintf("Waiting for new blocks...\n");
+        }
     }
 
     // now add the inv counter in a reverse mode
@@ -116,7 +123,7 @@ void check_shutdown(btc_node *node)
     if (isShutdownRequested()) {
         BTCNode *pnode = (BTCNode *)node->nodegroup->ctx;
         LogPrintf("Shutdown requested\n");
-        if (pnode->db->flush()) {
+        if (pnode->db->flush(!pnode->blockflush)) {
             // only allow shutdown here if we can flush the state
             LogPrintf("DB flush state acceptable (no data to flush or everything flushed)\n");
             btc_node_disconnect(node);
@@ -149,51 +156,52 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
 
         Hash256 blockhash(hash);
         auto it = pnode->m_blocks_in_flight.find(blockhash);
+        HeaderEntry *pheader = nullptr;
         if (it != pnode->m_blocks_in_flight.end() && it->second != nullptr) {
-            HeaderEntry *pheader = it->second;
-            pheader->setIndexed();
+            pheader = it->second;
+        }
 
-            // mark block as indexed
-            unsigned int primkey = pnode->addBlockToMap(blockhash);
-            // create the serialized txindex key at this point (outside of the loop)
-            cstring* blockprimkey = cstr_new_sz(4);
-            ser_u32(blockprimkey, primkey);
+        // mark block as indexed
+        unsigned int primkey = pnode->addBlockToMap(blockhash);
+        // create the serialized txindex key at this point (outside of the loop)
+        cstring* blockprimkey = cstr_new_sz(4);
+        ser_u32(blockprimkey, primkey);
 
-            // write the counter->blockhash map to db
-            for (unsigned int i = 0; i < vsize; i++)
-            {
-                btc_tx *tx = btc_tx_new(); //needs to be on the heep
-                size_t len = 0;
-                if (!btc_tx_deserialize((const unsigned char *)buf->p, buf->len, tx, &len, true) || len == 0) {
-                    printf("ERROR\n");
-                }
-                buf->p = (unsigned char *)buf->p+len;
-
-                uint256 txhash_raw;
-                btc_tx_hash(tx, txhash_raw);
-                Hash256 txhash(txhash_raw);
-                pnode->processTXID(blockprimkey->str,blockprimkey->len, txhash, true);
-                btc_tx_free(tx);
+        // write the counter->blockhash map to db
+        for (unsigned int i = 0; i < vsize; i++)
+        {
+            btc_tx *tx = btc_tx_new(); //needs to be on the heep
+            size_t len = 0;
+            if (!btc_tx_deserialize((const unsigned char *)buf->p, buf->len, tx, &len, true) || len == 0) {
+                printf("ERROR\n");
             }
+            buf->p = (unsigned char *)buf->p+len;
 
-            pnode->persistBlockKey(blockprimkey->str,blockprimkey->len, blockhash);
-            pheader->setIndexed();
-            if (primkey % 100 == 0) LogPrintf("Indexing complete of block %s (idx:%d)\n", blockhash.GetHex(), primkey);
-            cstr_free(blockprimkey, true);
+            uint256 txhash_raw;
+            btc_tx_hash(tx, txhash_raw);
+            Hash256 txhash(txhash_raw);
+            pnode->blockflush = true;
+            pnode->processTXID(blockprimkey->str,blockprimkey->len, txhash, true);
+            btc_tx_free(tx);
+        }
 
-            // allow to shutdown at this point since the batch can be written here
-            if (isShutdownRequested()) {
-                pnode->db->flush(true);
-                btc_node_disconnect(node);
-            }
+        pnode->persistBlockKey(blockprimkey->str,blockprimkey->len, blockhash);
+        pnode->db->flush(); // eventually flush at this point
+        if (pheader) pheader->setIndexed();
+        LogPrintf("Indexing complete of block %s (idx:%d)\n", blockhash.GetHex(), primkey);
+        cstr_free(blockprimkey, true);
 
+        // allow to shutdown at this point since the batch can be written here
+        if (isShutdownRequested()) {
+            pnode->db->flush(true);
+            btc_node_disconnect(node);
+        }
+
+        if (it != pnode->m_blocks_in_flight.end()) {
             pnode->m_blocks_in_flight.erase(it);
             if (pnode->m_blocks_in_flight.size() == 0) {
                 request_blocks(node);
             }
-        }
-        else {
-            printf("BLOCK NOT FOUND %s\n", blockhash.GetHex().c_str());
         }
     }
 
@@ -221,14 +229,47 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
 
         if (amount_of_headers == MAX_HEADERS_RESULTS)
         {
-            printf("blockheader: %u\n", pnode->GetHeight());
-            /* peer sent maximal amount of headers, very likely, there will be more */
+            int headerchainsize = pnode->GetHeight();
+            printf("Sync blockheaders %d%% done (at height: %d)\n", (int)(100.0 / node->bestknownheight * headerchainsize), headerchainsize);
+
+            // peer sent maximal amount of headers, very likely, there will be more
             request_headers(node);
-            //request_blocks(node);
         }
         else
         {
+            LogPrintf("Compleded header sync\n");
             request_blocks(node);
+        }
+    }
+
+    if (strcmp(hdr->command, BTC_MSG_INV) == 0)
+    {
+        struct const_buffer original_inv = { buf->p, buf->len };
+        uint32_t varlen;
+        deser_varlen(&varlen, buf);
+        btc_bool contains_block = false;
+
+        node->nodegroup->log_write_cb("Got inv message with %d item(s)\n", varlen);
+
+        // if the inv contains one or more blocks, just request the complete inv (lazy mode)
+        // TODO: create a new inv message and only request the blocks
+        for (unsigned int i=0;i<varlen;i++)
+        {
+            uint32_t type;
+            deser_u32(&type, buf);
+            if (type == MSG_BLOCK || type == MSG_WITNESS_BLOCK) {
+                contains_block = true;
+            }
+            deser_skip(buf, 32);
+        }
+
+        if (contains_block)
+        {
+            /* request the blocks */
+            node->nodegroup->log_write_cb("Requesting %d blocks via requested inv message\n", varlen);
+            cstring *p2p_msg = btc_p2p_message_new(node->nodegroup->chainparams->netmagic, BTC_MSG_GETDATA, original_inv.p, original_inv.len);
+            btc_node_send(node, p2p_msg);
+            cstr_free(p2p_msg, true);
         }
     }
 }
@@ -251,7 +292,7 @@ void handshake_done(struct btc_node_ *node)
 
 BTCNodePriv::BTCNodePriv(BTCNode *node_in) : m_node(node_in) {
     syncblocks = false;
-    m_group = btc_node_group_new(NULL);
+    m_group = btc_node_group_new(&btc_chainparams_regtest);
     m_group->desired_amount_connected_nodes = 1;
 
     if (g_args.GetBoolArg("-netdebug", false)) {
@@ -276,7 +317,7 @@ BTCNode::BTCNode(IndexDatabaseInterface *db_in) : db(db_in), priv(new BTCNodePri
     db->loadBlockMap(m_intcounter_to_hash_map, m_hash_to_intcounter_map, auto_inc_counter);
 
     btc_node *node = btc_node_new();
-    btc_node_set_ipport(node, "127.0.0.1:8333");
+    btc_node_set_ipport(node, "127.0.0.1:18444");
     btc_node_group_add_node(priv->m_group, node);
 }
 
@@ -312,6 +353,7 @@ bool BTCNode::AddHeader(uint8_t* t, uint8_t* prevhash) {
 }
 
 void BTCNode::processTXID(void *block_prim_key, uint8_t block_prim_key_len, const Hash256& tx, bool avoid_flush) {
+    blockflush = true;
     db->putTxIndex(tx.m_data, 32, (const uint8_t *)block_prim_key, block_prim_key_len);
 }
 
@@ -323,6 +365,7 @@ unsigned int BTCNode::addBlockToMap(const Hash256& hash) {
 
 void BTCNode::persistBlockKey(void *block_prim_key, uint8_t block_prim_key_len, const Hash256& blockhash) {
     db->putBlockMap((const uint8_t *)block_prim_key, block_prim_key_len, blockhash.m_data, 32);
+    blockflush = false;
 }
 
 bool BTCNode::isIndexed(const Hash256& hash, unsigned int *block_prim_key) {
