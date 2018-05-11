@@ -32,8 +32,9 @@
 
 #include <btc/buffer.h>
 #include <btc/hash.h>
-#include <ripemd160.h>
 #include <btc/serialize.h>
+
+#include "ripemd160.h" //non exposed header
 
 btc_bool btc_script_copy_without_op_codeseperator(const cstring* script_in, cstring* script_out)
 {
