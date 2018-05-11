@@ -244,8 +244,8 @@ struct HTTPPathHandler
 static struct event_base* eventBase = nullptr;
 //! HTTP server
 struct evhttp* eventHTTP = nullptr;
-//! List of subnets to allow RPC connections from
-static std::vector<CSubNet> rpc_allow_subnets;
+//! List of addresses to allow RPC connections from
+static std::vector<std::string> rpc_allow_addresses;
 //! Work queue for handling longer requests off the event loop thread
 static WorkQueue<HTTPClosure>* workQueue = nullptr;
 //! Handlers for (sub)paths
@@ -254,47 +254,20 @@ std::vector<HTTPPathHandler> pathHandlers;
 std::vector<evhttp_bound_socket *> boundSockets;
 
 /** Check if a network address is allowed to access the HTTP server */
-static bool ClientAllowed(const CNetAddr& netaddr)
+static bool ClientAllowed(const std::string& netaddr)
 {
-    /*
-    if (!netaddr.IsValid())
-        return false;
-    for(const CSubNet& subnet : rpc_allow_subnets)
-        if (subnet.Match(netaddr))
-            return true;
+    if (netaddr == "") return false;
+    for(const std::string& ip : rpc_allow_addresses) {
+        if (netaddr == ip) return true;
+    }
     return false;
-    */
-
-    //for now, allow all clients
-    return true;
 }
 
 /** Initialize ACL list for HTTP server */
 static bool InitHTTPAllowList()
 {
-    /*rpc_allow_subnets.clear();
-    CNetAddr localv4;
-    CNetAddr localv6;
-    LookupHost("127.0.0.1", localv4, false);
-    LookupHost("::1", localv6, false);
-    rpc_allow_subnets.push_back(CSubNet(localv4, 8));      // always allow IPv4 local subnet
-    rpc_allow_subnets.push_back(CSubNet(localv6));         // always allow IPv6 localhost
-    for (const std::string& strAllow : g_args.GetArgs("-rpcallowip")) {
-        CSubNet subnet;
-        LookupSubNet(strAllow.c_str(), subnet);
-        if (!subnet.IsValid()) {
-            uiInterface.ThreadSafeMessageBox(
-                strprintf("Invalid -rpcallowip subnet specification: %s. Valid are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24).", strAllow),
-                "", CClientUIInterface::MSG_ERROR);
-            return false;
-        }
-        rpc_allow_subnets.push_back(subnet);
-    }
-    std::string strAllowed;
-    for (const CSubNet& subnet : rpc_allow_subnets)
-        strAllowed += subnet.ToString() + " ";
-    LogPrintf("Allowing HTTP connections from: %s\n", strAllowed);
-    */
+    rpc_allow_addresses.push_back("127.0.0.1");
+    rpc_allow_addresses.push_back("::1");
     return true;
 }
 
@@ -335,7 +308,7 @@ static void http_request_cb(struct evhttp_request* req, void* arg)
     std::unique_ptr<HTTPRequest> hreq(new HTTPRequest(req));
 
     LogPrintf("Received a %s request for %s from %s\n",
-             RequestMethodString(hreq->GetRequestMethod()), hreq->GetURI(), hreq->GetPeer().ToString());
+             RequestMethodString(hreq->GetRequestMethod()), hreq->GetURI(), hreq->GetPeer());
 
     // Early address-based allow check
     if (!ClientAllowed(hreq->GetPeer())) {
@@ -713,19 +686,17 @@ void HTTPRequest::WriteReply(int nStatus, const std::string& strReply)
     req = nullptr; // transferred back to main thread
 }
 
-CService HTTPRequest::GetPeer()
+std::string HTTPRequest::GetPeer()
 {
     evhttp_connection* con = evhttp_request_get_connection(req);
-    CService peer;
     if (con) {
         // evhttp retains ownership over returned address string
         const char* address = "";
         uint16_t port = 0;
         evhttp_connection_get_peer(con, (char**)&address, &port);
-        /*peer = LookupNumeric(address, port);*/
-        int i = 0;
+        return std::string(address);
     }
-    return peer;
+    return "";
 }
 
 std::string HTTPRequest::GetURI()

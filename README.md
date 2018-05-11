@@ -29,9 +29,9 @@ If you connect via the public internet, make sure you connect through a secure c
 
 
 #### TODO:
-* Add http/rest lookups
 * Reduce memory usage with internal header maps
 * Lookup should also respect the non-flushed cache
 * Make sure that incoming block invs during sync-via-headers do not confuse the indexer
 * Add file based logging
 * Add runtime option to switch network (testnet, regtest) and the IP to connect to
+* http lookup: fetch block from peer and return tx

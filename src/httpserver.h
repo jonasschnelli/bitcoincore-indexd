@@ -89,9 +89,9 @@ public:
      */
     std::string GetURI();
 
-    /** Get CService (address:ip) for the origin of the http request.
+    /** Get std::string (ip) for the origin of the http request.
      */
-    CService GetPeer();
+    std::string GetPeer();
 
     /** Get request method.
      */
