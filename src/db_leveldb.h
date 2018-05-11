@@ -287,6 +287,8 @@ private:
     size_t m_size_estimate = 0; //keeps track of the size of the unflushed cached
     std::map<std::vector<uint8_t>, std::vector<uint8_t>> cache;
     CDBWrapper db;
+    mutable CCriticalSection cs_db;
+
 public:
     DatabaseLEVELDB(const std::string& path);
 

@@ -241,6 +241,7 @@ bool DatabaseLEVELDB::flush(bool force) {
     if (cache.size() == 0) return true;
     if (m_size_estimate >= (size_t)g_args.GetArg("-dbcache", DEFAULT_DB_CACHE) || force) {
         // write the batch when we have reached the desired cache size
+        LOCK(cs_db);
         CDBBatch batch(db);
         for (auto const& it : cache) {
             batch.Write(it.first, it.second);
@@ -276,6 +277,7 @@ bool DatabaseLEVELDB::lookupTXID(const uint8_t* key, unsigned int key_len, Hash2
     std::vector<uint8_t> v_value;
     v_key.insert(v_key.begin(), DB_TXINDEX);
 
+    LOCK(cs_db);
     //TOOD: loopup the key in the cache which may not be flused to leveldb
     if (db.Read(v_key, v_value)) {
         assert(v_value.size() == 4);

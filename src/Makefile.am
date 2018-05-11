@@ -26,8 +26,11 @@ bin_PROGRAMS = bitcoincore-indexd
 
 BITCOINCORE_INDEXD_H = \
     btcnode.h \
+    compat.h \
     dbinterface.h \
     hash.h \
+    httpserver.h \
+    netaddress.h \
     shutdown.h \
     sync.h \
     threadsafety.h \
@@ -40,7 +43,9 @@ DATABASE_LEVELDB_SOURCES = \
     
 BITCOINCORE_INDEXD_SOURCES = \
     btcnode.cpp \
+    httpserver.cpp \
     main.cpp \
+    netaddress.cpp \
     shutdown.cpp \
     sync.cpp \
     utils.cpp \
@@ -51,7 +56,7 @@ BITCOINCORE_INDEXD_SOURCES = \
 bitcoincore_indexd_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir) $(UNIVALUE_CFLAGS) $(LIBUNIVALUE_CFLAGS) $(LIBBTC_CFLAGS) $(LEVELDB_CPPFLAGS)
 bitcoincore_indexd_CXXFLAGS = $(AM_CXXFLAGS)
 bitcoincore_indexd_SOURCES = $(BITCOINCORE_INDEXD_SOURCES)
-bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV)
+bitcoincore_indexd_LDADD = $(LIBUNIVALUE) $(LIBBTC) $(LIBLEVELDB) $(LIBLEVELDB_SSE42) $(LIBMEMENV) $(EVENT_LIBS) $(EVENT_PTHREADS_LIBS)
 bitcoincore_indexd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 bitcoincore_indexd_LIBTOOLFLAGS = --tag CXX
 

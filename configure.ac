@@ -564,24 +564,6 @@ if test x$use_hardening != xno; then
   esac
 fi
 
-AC_CHECK_HEADERS([endian.h sys/endian.h byteswap.h stdio.h stdlib.h unistd.h strings.h sys/types.h sys/stat.h sys/select.h sys/prctl.h])
-
-AC_CHECK_DECLS([strnlen])
-
-# Check for daemon(3), unrelated to --with-daemon (although used by it)
-AC_CHECK_DECLS([daemon])
-
-AC_CHECK_DECLS([le16toh, le32toh, le64toh, htole16, htole32, htole64, be16toh, be32toh, be64toh, htobe16, htobe32, htobe64],,,
-		[#if HAVE_ENDIAN_H
-                 #include <endian.h>
-                 #elif HAVE_SYS_ENDIAN_H
-                 #include <sys/endian.h>
-                 #endif])
-
-AC_CHECK_DECLS([bswap_16, bswap_32, bswap_64],,,
-		[#if HAVE_BYTESWAP_H
-                 #include <byteswap.h>
-                 #endif])
 
 dnl this flag screws up non-darwin gcc even when the check fails. special-case it.
 if test x$TARGET_OS = xdarwin; then
@@ -734,6 +716,25 @@ if test x$use_tests = xyes; then
 
   if test x$HEXDUMP = x; then
     AC_MSG_ERROR(hexdump is required for tests)
+  fi
+fi
+
+if test x$use_pkgconfig = xyes; then
+  : dnl
+  m4_ifdef(
+    [PKG_CHECK_MODULES],
+    [
+      PKG_CHECK_MODULES([EVENT], [libevent],, [AC_MSG_ERROR(libevent not found.)])
+      if test x$TARGET_OS != xwindows; then
+        PKG_CHECK_MODULES([EVENT_PTHREADS], [libevent_pthreads],, [AC_MSG_ERROR(libevent_pthreads not found.)])
+      fi
+    ]
+  )
+else
+  AC_CHECK_HEADER([event2/event.h],, AC_MSG_ERROR(libevent headers missing),)
+  AC_CHECK_LIB([event],[main],EVENT_LIBS=-levent,AC_MSG_ERROR(libevent missing))
+  if test x$TARGET_OS != xwindows; then
+    AC_CHECK_LIB([event_pthreads],[main],EVENT_PTHREADS_LIBS=-levent_pthreads,AC_MSG_ERROR(libevent_pthreads missing))
   fi
 fi
 
@@ -935,6 +936,8 @@ AC_SUBST(PIE_FLAGS)
 AC_SUBST(SSE42_CXXFLAGS)
 AC_SUBST(LIBTOOL_APP_LDFLAGS)
 AC_SUBST(TESTDEFS)
+AC_SUBST(EVENT_LIBS)
+AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_CONFIG_FILES([Makefile src/Makefile])
 
 dnl boost's m4 checks do something really nasty: they export these vars. As a

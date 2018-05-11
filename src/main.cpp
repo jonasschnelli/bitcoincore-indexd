@@ -4,6 +4,7 @@
 
 #include <btcnode.h>
 #include <db_leveldb.h>
+#include <httpserver.h>
 #include <shutdown.h>
 #include <utils.h>
 
@@ -29,6 +30,26 @@ static void HandleSIGTERM(int)
     requestShutdown();
 }
 
+//TODO: turn into shared pointer
+IndexDatabaseInterface *g_db = nullptr;
+
+static bool rest_lookup(HTTPRequest* req, const std::string& strURIPart)
+{
+    if (strURIPart.size() != 64) return false;
+    std::vector<unsigned char> data = ParseHex(strURIPart);
+    if (data.size() != 32) {
+        return false;
+    }
+    std::reverse(data.begin(), data.end()); //we assume big-endian in hex inputs
+
+    Hash256 hash;
+    if (g_db->lookupTXID(&data[0], 32, hash)) {
+        req->WriteHeader("Content-Type", "text/plain");
+        req->WriteReply(HTTP_OK, hash.GetHex());
+    }
+    return true;
+}
+
 int main(int argc, char* argv[])
 {
     // parse arguments
@@ -52,15 +73,18 @@ int main(int argc, char* argv[])
 #endif
 
     // flexible database interface
-    IndexDatabaseInterface *db = nullptr;
+    g_db = nullptr;
     if (g_args.GetArg("-database", DEFAULT_DB) == "leveldb") {
-        db = new DatabaseLEVELDB(GetDataDir()+"/db_leveldb");
+        g_db = new DatabaseLEVELDB(GetDataDir()+"/db_leveldb");
     }
     else {
         LogPrintf("Database not supported");
         exit(1);
     }
 
+    InitHTTPServer();
+    StartHTTPServer();
+    RegisterHTTPHandler("/", false, rest_lookup);
     // internal lookup (not ideal since it's only possible during startup == always load the DB
     // TODO: move to REST lookup via HTTP
     if (g_args.GetArg("-lookup", "") != "") {
@@ -71,7 +95,7 @@ int main(int argc, char* argv[])
         }
         std::reverse(data.begin(), data.end()); //we assume big-endian in hex inputs
         Hash256 hash;
-        if (db->lookupTXID(&data[0], 32, hash)) {
+        if (g_db->lookupTXID(&data[0], 32, hash)) {
             LogPrintf("blockhash: %s\n", hash.GetHex());
         }
         else {
@@ -81,9 +105,10 @@ int main(int argc, char* argv[])
     else {
         // if no lookup, update database
         LogPrintf("start sync...\n");
-        BTCNode node(db);
+        BTCNode node(g_db);
         node.SyncHeaders();
         node.SyncBlocks();
-        db->close();
+        g_db->close();
     }
+    StopHTTPServer();
 }
