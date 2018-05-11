@@ -25,7 +25,7 @@ If you connect via the public internet, make sure you connect through a secure c
 * complete index up to 522081 takes about ~60min on a fast CPU with SSD
 
 #### Lookups
-* WIP: right now, you can lookup a txid via -lookup=<txid>
+* Lookup can be done via HTTP 18445 (-rpcport). Example `curl 127.0.0.1:5442/5012c1d2a46d5684aa0331f0d8a900767c86c0fd83bb632f357b1ea11fa69179`
 
 
 #### TODO:

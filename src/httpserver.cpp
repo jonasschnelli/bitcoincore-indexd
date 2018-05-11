@@ -79,6 +79,7 @@ inline raii_evhttp_connection obtain_evhttp_connection_base(struct event_base* b
 }
 
 static const unsigned int MAX_SIZE = 0x02000000;
+static const int DEFAULT_RPC_PORT = 18445;
 
 void RenameThread(const char* name)
 {
@@ -375,7 +376,7 @@ static bool ThreadHTTP(struct event_base* base, struct evhttp* http)
 /** Bind HTTP server to specified addresses */
 static bool HTTPBindAddresses(struct evhttp* http)
 {
-    int defaultPort = g_args.GetArg("-rpcport", 5442);
+    int defaultPort = g_args.GetArg("-rpcport", DEFAULT_RPC_PORT);
     std::vector<std::pair<std::string, uint16_t> > endpoints;
 
     // Determine what addresses to bind to
