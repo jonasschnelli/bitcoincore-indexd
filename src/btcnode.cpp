@@ -205,7 +205,7 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
                         unsigned char *end = (unsigned char *)(buf->p)+len;
                         pnode->priv->m_txdata.clear();
                         pnode->priv->m_txdata = std::vector<unsigned char>((unsigned char *)buf->p, end);
-
+                        btc_tx_free(tx);
                         // disconnect and leave the event loop
                         btc_node_disconnect(node);
                         return;
