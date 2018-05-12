@@ -1,5 +1,7 @@
 # External transaction index for Bitcoin Core
 
+[![Build Status](https://travis-ci.org/jonasschnelli/bitcoincore-indexd.svg?branch=master)](https://travis-ci.org/jonasschnelli/bitcoincore-indexd)
+
 ### Status
 This project is still experimental, use at your own risk!
 
