@@ -53,8 +53,11 @@ public:
     unsigned int auto_inc_counter = 0; // the auto incremental blockmap-key index
 
     BTCNode(IndexDatabaseInterface *db_in);
-    void SyncHeaders();
-    void SyncBlocks();
+
+    void SyncLoop();
+    void Loop();
+    bool FetchTX(const Hash256& tx, const Hash256& block, std::vector<unsigned char> &txdata_out);
+
     bool AddHeader(uint8_t* t, uint8_t* prevhash);
     unsigned int GetHeight() { return m_headers.size(); }
     const uint8_t * GetRawBestBlockHash() { return m_headers.back()->m_hash.m_data; }

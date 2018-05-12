@@ -24,9 +24,11 @@ If you connect via the public internet, make sure you connect through a secure c
 * ~14.3GB up to block 522081 (May 10th 2018)
 * complete index up to 522081 takes about ~60min on a fast CPU with SSD
 
-#### Lookups
-* Lookup can be done via HTTP 18445 (-rpcport). Example `curl 127.0.0.1:5442/5012c1d2a46d5684aa0331f0d8a900767c86c0fd83bb632f357b1ea11fa69179`
-
+#### REST interface
+* Lookup can be done via HTTP 18445
+* Two endpoints
+** `/blockhash/<txhash>` will return the blockhash of the requested transaction id
+** `/tx/<txhash>` will return the transaction of the requested txid (will fetch the relevant block via p2p and return the tx)
 
 #### TODO:
 * Reduce memory usage with internal header maps
@@ -34,4 +36,15 @@ If you connect via the public internet, make sure you connect through a secure c
 * Make sure that incoming block invs during sync-via-headers do not confuse the indexer
 * Add file based logging
 * Add runtime option to switch network (testnet, regtest) and the IP to connect to
-* http lookup: fetch block from peer and return tx
+
+#### Build
+`./autogen.sh`
+`./configure`
+`make -j`
+
+#### run
+`./src/bitcoincore-indexd`
+
+Options
+* `./src/bitcoincore-indexd --datadir=/tmp` (change datadir, default is ~/.bitcoincore-indexd)
+* `./src/bitcoincore-indexd --dbcache=xxx` (change the leveldb dbcache)

@@ -33,7 +33,7 @@ static void HandleSIGTERM(int)
 //TODO: turn into shared pointer
 IndexDatabaseInterface *g_db = nullptr;
 
-static bool rest_lookup(HTTPRequest* req, const std::string& strURIPart)
+static bool rest_lookup_blockhash(HTTPRequest* req, const std::string& strURIPart)
 {
     if (strURIPart.size() != 64) return false;
     std::vector<unsigned char> data = ParseHex(strURIPart);
@@ -46,8 +46,32 @@ static bool rest_lookup(HTTPRequest* req, const std::string& strURIPart)
     if (g_db->lookupTXID(&data[0], 32, hash)) {
         req->WriteHeader("Content-Type", "text/plain");
         req->WriteReply(HTTP_OK, hash.GetHex());
+        return true;
     }
-    return true;
+    return false;
+}
+
+static bool rest_lookup_tx(HTTPRequest* req, const std::string& strURIPart)
+{
+    if (strURIPart.size() != 64) return false;
+    std::vector<unsigned char> data = ParseHex(strURIPart);
+    if (data.size() != 32) {
+        return false;
+    }
+    std::reverse(data.begin(), data.end()); //we assume big-endian in hex inputs
+
+    Hash256 hash;
+    if (g_db->lookupTXID(&data[0], 32, hash)) {
+        // synchronous fetch the transaction (timeout is 10seconds)
+        BTCNode node(nullptr);
+        std::vector<unsigned char> txdata;
+        if (node.FetchTX(Hash256(&data[0]), hash, txdata)) {
+            req->WriteHeader("Content-Type", "text/plain");
+            req->WriteReply(HTTP_OK, HexStr(txdata));
+            return true;
+        }
+    }
+    return false;
 }
 
 int main(int argc, char* argv[])
@@ -84,7 +108,8 @@ int main(int argc, char* argv[])
 
     InitHTTPServer();
     StartHTTPServer();
-    RegisterHTTPHandler("/", false, rest_lookup);
+    RegisterHTTPHandler("/blockhash/", false, rest_lookup_blockhash);
+    RegisterHTTPHandler("/tx/", false, rest_lookup_tx);
     // internal lookup (not ideal since it's only possible during startup == always load the DB
     // TODO: move to REST lookup via HTTP
     if (g_args.GetArg("-lookup", "") != "") {
@@ -106,8 +131,7 @@ int main(int argc, char* argv[])
         // if no lookup, update database
         LogPrintf("start sync...\n");
         BTCNode node(g_db);
-        node.SyncHeaders();
-        node.SyncBlocks();
+        node.SyncLoop();
         g_db->close();
     }
     StopHTTPServer();
