@@ -360,6 +360,7 @@ void handshake_done(struct btc_node_ *node)
         /* request the blocks */
         cstring *p2p_msg = btc_p2p_message_new(node->nodegroup->chainparams->netmagic, BTC_MSG_GETDATA, inv_msg_cstr->str, inv_msg_cstr->len);
         btc_node_send(node, p2p_msg);
+        cstr_free(p2p_msg, true);
         cstr_free(inv_msg_cstr, true);
 
     }
@@ -392,6 +393,14 @@ BTCNode::BTCNode(IndexDatabaseInterface *db_in) : db(db_in), priv(new BTCNodePri
     btc_node *node = btc_node_new();
     btc_node_set_ipport(node, "127.0.0.1:8333");
     btc_node_group_add_node(priv->m_group, node);
+}
+
+BTCNode::~BTCNode() {
+    for (HeaderEntry*e : m_headers) {
+        delete e;
+    }
+    m_headers.clear();
+    delete priv;
 }
 
 

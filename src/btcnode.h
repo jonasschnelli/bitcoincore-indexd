@@ -53,6 +53,7 @@ public:
     unsigned int auto_inc_counter = 0; // the auto incremental blockmap-key index
 
     BTCNode(IndexDatabaseInterface *db_in);
+    ~BTCNode();
 
     void SyncLoop();
     void Loop();
