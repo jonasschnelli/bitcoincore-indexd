@@ -4,8 +4,8 @@
 
 #include "utils.h"
 
-#include <stdarg.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #if defined _MSC_VER
 #include <direct.h>
@@ -27,6 +27,17 @@ int64_t GetTimeMillis()
     uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     assert(now > 0);
     return now;
+}
+
+std::string FormatISO8601DateTime(int64_t nTime) {
+    struct tm ts;
+    time_t time_val = nTime;
+#ifdef _MSC_VER
+    gmtime_s(&ts, &time_val);
+#else
+    gmtime_r(&time_val, &ts);
+#endif
+    return strprintf("%04i-%02i-%02iT%02i:%02i:%02iZ", ts.tm_year + 1900, ts.tm_mon + 1, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec);
 }
 
 std::string itostr(int n)
@@ -360,6 +371,12 @@ bool isDir(const std::string& path) {
     struct stat s;
     if (stat(path.c_str(),&s) == 0 && s.st_mode & S_IFDIR) return true;
     return false;
+}
+
+std::ifstream::pos_type filesize(const char* filename)
+{
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    return in.tellg();
 }
 
 std::string GetDataDir()

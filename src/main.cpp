@@ -79,6 +79,8 @@ int main(int argc, char* argv[])
     // parse arguments
     g_args.ParseParameters(argc, argv);
 
+    InitLogging();
+
     // create datadir if required
     if (!isDir(GetDataDir()))
     {

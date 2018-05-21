@@ -30,6 +30,7 @@ BITCOINCORE_INDEXD_H = \
     dbinterface.h \
     hash.h \
     httpserver.h \
+    logging.h \
     netaddress.h \
     shutdown.h \
     sync.h \
@@ -44,6 +45,7 @@ DATABASE_LEVELDB_SOURCES = \
 BITCOINCORE_INDEXD_SOURCES = \
     btcnode.cpp \
     httpserver.cpp \
+    logging.cpp \
     main.cpp \
     netaddress.cpp \
     shutdown.cpp \

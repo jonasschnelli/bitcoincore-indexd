@@ -9,6 +9,7 @@
 #include <tinyformat.h>
 
 #include <chrono>
+#include <fstream>
 #include <map>
 #include <set>
 #include <stdint.h>
@@ -16,21 +17,7 @@
 #include <string>
 #include <vector>
 
-template<typename... Args> std::string FormatStringFromLogArgs(const char *fmt, const Args&... args) { return fmt; }
-
-#define LogPrintf(...) do { \
-    if (1==1) { \
-        std::string _log_msg_; /* Unlikely name to avoid shadowing variables */ \
-        try { \
-            _log_msg_ = tfm::format(__VA_ARGS__); \
-        } catch (tinyformat::format_error &fmterr) { \
-            /* Original format string will have newline so don't add one here */ \
-            _log_msg_ = "Error \"" + std::string(fmterr.what()) + "\" while formatting log message: " + FormatStringFromLogArgs(__VA_ARGS__); \
-        } \
-        fwrite(_log_msg_.data(), 1, _log_msg_.size(), stdout); \
-        fflush(stdout); \
-    } \
-} while(0)
+#include <logging.h>
 
 template<typename T>
 std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
@@ -67,6 +54,7 @@ std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
 
 int64_t GetTimeMillis();
+std::string FormatISO8601DateTime(int64_t nTime);
 
 class ArgsManager
 {
@@ -185,6 +173,7 @@ extern ArgsManager g_args;
 std::string itostr(int n);
 
 bool isDir(const std::string& path);
+std::ifstream::pos_type filesize(const char* filename);
 void CreateDir(const std::string& path);
 std::string GetDataDir();
 
