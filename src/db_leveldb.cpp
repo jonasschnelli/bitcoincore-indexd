@@ -17,6 +17,8 @@
 #include <stdint.h>
 #include <algorithm>
 
+#include <btc/chainparams.h>
+#include <btc/base58.h>
 #include <btc/buffer.h>
 #include <btc/serialize.h>
 
@@ -192,11 +194,21 @@ DatabaseLEVELDB::DatabaseLEVELDB(const std::string& path) : db(path, 300*1024*10
                     LogPrintf("Blockmap %s to %d\n", HexStrRev(v_value), blockmap_key);
                 }
                 else if (v_key[0] == DB_TXINDEX) {
-                    struct const_buffer buf = {&v_value[0], 4};
+                    struct const_buffer buf = {&v_value[0], v_value.size()};
                     unsigned int blockmap_key = 0;
                     deser_u32(&blockmap_key, &buf);
                     v_key.erase(v_key.begin());
-                    LogPrintf("TX index %s to %d\n", HexStrRev(v_key), blockmap_key);
+                    LogPrintf("TX index %s to %d (vsize: %ld)\n", HexStrRev(v_key), blockmap_key, v_value.size());
+                    if (buf.len >= 21) {
+                        int type = 0;
+                        deser_bytes(&type, &buf, 1);
+                        uint8_t hash160[sizeof(uint160)+1];
+                        deser_bytes(hash160+1, &buf, 20);
+                        hash160[0] = btc_chainparams_main.b58prefix_pubkey_address;
+                        char addrout[128];
+                        btc_base58_encode_check(hash160, sizeof(hash160), addrout, 100);
+                        LogPrintf("addr: %s\n", addrout);
+                    }
                 }
                 pcursor->Next();
             }

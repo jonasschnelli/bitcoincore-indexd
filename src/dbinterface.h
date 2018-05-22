@@ -28,7 +28,7 @@ public:
     // writes an blockmap-key entry
     virtual bool putBlockMap(const uint8_t* key, unsigned int key_len, const uint8_t* value, unsigned int value_len) = 0;
 
-    // loopup a txid and writes back its blockhash. Retruns true if found or false if not found
+    // loopup a txid and writes back its blockhash. Returns true if found or false if not found
     virtual bool lookupTXID(const uint8_t* key, unsigned int key_len, Hash256& blockhash) = 0;
 
     // flush the database if flush requirements are given

@@ -25,6 +25,7 @@ public:
     std::vector<unsigned char> m_txdata;
     int m_node_type = BTC_NODE_TYPE_INDEX;
 
+    bool m_index_addr = false;
     BTCNodePriv(BTCNode *node_in);
 
     ~BTCNodePriv() {
@@ -235,11 +236,53 @@ void postcmd(struct btc_node_ *node, btc_p2p_msg_hdr *hdr, struct const_buffer *
             }
             buf->p = (unsigned char *)buf->p+len;
 
+            // create a outputs buffer
+            cstring* outputs_buf = NULL;
+            if (pnode->priv->m_index_addr) {
+                for (unsigned int i = 0; i < tx->vout->len; i++) {
+                    btc_tx_out *tx_out = (btc_tx_out *)vector_idx(tx->vout, i);
+                    vector *script_pushes = vector_new(1, free);
+                    enum btc_tx_out_type type = btc_script_classify(tx_out->script_pubkey, script_pushes);
+                    if (type == BTC_TX_SCRIPTHASH && script_pushes->len == 1) {
+                        uint160 *hash160 = (uint160 *)vector_idx(script_pushes, 0);
+                        if (!outputs_buf) {
+                            outputs_buf = cstr_new_cstr(blockprimkey);
+                        }
+                        ser_bytes(outputs_buf, &type, 1);
+                        ser_bytes(outputs_buf, hash160, 20);
+                    }
+                    if (type == BTC_TX_PUBKEYHASH && script_pushes->len == 1) {
+                        uint160 *hash160 = (uint160 *)vector_idx(script_pushes, 0);
+                        if (!outputs_buf) {
+                            outputs_buf = cstr_new_cstr(blockprimkey);
+                        }
+                        ser_bytes(outputs_buf, &type, 1);
+                        ser_bytes(outputs_buf, hash160, 20);
+                    }
+                    else if (type == BTC_TX_WITNESS_V0_PUBKEYHASH && script_pushes->len == 1) {
+                        uint160 *hash160 = (uint160 *)vector_idx(script_pushes, 0);
+                        if (!outputs_buf) {
+                            outputs_buf = cstr_new_cstr(blockprimkey);
+                        }
+                        ser_bytes(outputs_buf, &type, 1);
+                        ser_bytes(outputs_buf, hash160, 20);
+                    }
+                    // TODO: P2WSH
+                    vector_free(script_pushes, true);
+                }
+            }
+
             uint256 txhash_raw;
             btc_tx_hash(tx, txhash_raw);
             Hash256 txhash(txhash_raw);
             pnode->blockflush = true;
-            pnode->processTXID(blockprimkey->str,blockprimkey->len, txhash, true);
+            if (pnode->priv->m_index_addr && outputs_buf) {
+                pnode->processTXID(outputs_buf->str,outputs_buf->len, txhash, true);
+                cstr_free(outputs_buf, true);
+            }
+            else {
+                pnode->processTXID(blockprimkey->str,blockprimkey->len, txhash, true);
+            }
             btc_tx_free(tx);
         }
 
@@ -373,6 +416,8 @@ BTCNodePriv::BTCNodePriv(BTCNode *node_in) : m_node(node_in), m_node_type(BTC_NO
     if (g_args.GetBoolArg("-netdebug", false)) {
         m_group->log_write_cb = net_write_log_printf;
     }
+
+    m_index_addr = g_args.GetBoolArg("-indexaddr", false);
 
     // make the c++ m_node instance available from all callbacks (via flexible ctx pointer)
     m_group->ctx = m_node;
